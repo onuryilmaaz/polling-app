@@ -1,0 +1,87 @@
+<div class="h-screen flex items-center justify-center">
+  <form
+    class="shadow-lg rounded-lg p-5 bg-white w-1/3"
+    [formGroup]="registerForm"
+    (ngSubmit)="register()"
+  >
+    @for(error of errors;track error) {
+    <div
+      class="bg-red-100 border mb-2 flex flex-col gap-2 border-red-400 text-red-400 px-4 py-4 rounded-md relative"
+    >
+      <div class="text-xs">
+        {{ error.description }}
+      </div>
+    </div>
+    }
+    <div class="py-4">
+      <h1 class="font-bold text-left py-2 text-black">Register</h1>
+      <h6 class="text-slate-600 text-base">Create your account</h6>
+    </div>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Email</mat-label>
+      <mat-icon matPrefix>email</mat-icon>
+      <input matInput placeholder="Email" formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Full Name</mat-label>
+      <mat-icon matPrefix>person</mat-icon>
+      <input matInput placeholder="Fullname" formControlName="fullName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Password</mat-label>
+      <mat-icon matPrefix>lock</mat-icon>
+      <mat-icon (click)="passwordHide = !passwordHide" matSuffix>{{
+        passwordHide ? "visibility_off" : "visibility"
+      }}</mat-icon>
+      <input
+        matInput
+        formControlName="password"
+        type="{{ passwordHide ? 'password' : 'text' }}"
+        placeholder="Password"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Confirm Password</mat-label>
+      <mat-icon matPrefix>lock</mat-icon>
+      <mat-icon
+        (click)="confirmPasswordHide = !confirmPasswordHide"
+        matSuffix
+        >{{ confirmPasswordHide ? "visibility_off" : "visibility" }}</mat-icon
+      >
+      <input
+        matInput
+        formControlName="confirmPassword"
+        type="{{ confirmPasswordHide ? 'password' : 'text' }}"
+        placeholder="Confirm Password"
+      />
+    </mat-form-field>
+    <span
+      class="text-red-600"
+      *ngIf="
+        registerForm.hasError('passwordMismatch') &&
+        registerForm.get('confirmPassword')?.dirty &&
+        registerForm.get('confirmPassword')?.touched
+      "
+    >
+      Passwords do not match.
+    </span>
+
+    <button
+      [disabled]="!registerForm.valid"
+      type="submit"
+      class="w-full border border-slate-200 rounded-lg disabled:bg-purple-400 py-2 px-3 bg-purple-700 text-white font-bold"
+    >
+      Register
+    </button>
+    <div class="my-5">
+      <span class="text-slate-600">
+        Already have an account?
+        <a routerLink="/login" class="text-purple-700">Login</a>
+      </span>
+    </div>
+  </form>
+</div>
