@@ -5,11 +5,12 @@ import { RegisterComponent } from './pages/register/register.component';
 import { CreatePollComponent } from './pages/create-poll/create-poll.component';
 import { roleGuard } from './guards/role.guard';
 import { UsersComponent } from './pages/users/users.component';
+import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: PollComponent,
+    component: HomeComponent,
   },
   {
     path: 'login',
@@ -20,7 +21,7 @@ export const routes: Routes = [
     component: RegisterComponent,
   },
   {
-    path: 'poll',
+    path: 'poll/:id',
     component: PollComponent,
   },
   {
