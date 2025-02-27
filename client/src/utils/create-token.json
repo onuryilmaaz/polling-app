@@ -1,0 +1,157 @@
+{
+  "title": "Müşteri Memnuniyet Anketi",
+  "description": "Hizmetlerimizi geliştirmek için görüşlerinize ihtiyacımız var. Lütfen aşağıdaki soruları cevaplayarak deneyiminizi değerlendirin.",
+  "expiryDate": "2025-03-27T23:59:59.000Z",
+  "isActive": true,
+  "questions": [
+    {
+      "text": "Hizmetlerimizden genel olarak ne kadar memnunsunuz?",
+      "type": 0,
+      "orderIndex": 0,
+      "isRequired": true,
+      "maxSelections": 0,
+      "options": [
+        {
+          "text": "Çok memnunum",
+          "orderIndex": 0
+        },
+        {
+          "text": "Memnunum",
+          "orderIndex": 1
+        },
+        {
+          "text": "Kararsızım",
+          "orderIndex": 2
+        },
+        {
+          "text": "Memnun değilim",
+          "orderIndex": 3
+        },
+        {
+          "text": "Hiç memnun değilim",
+          "orderIndex": 4
+        }
+      ]
+    },
+    {
+      "text": "Ürünlerimizin kalitesini nasıl değerlendirirsiniz?",
+      "type": 0,
+      "orderIndex": 1,
+      "isRequired": true,
+      "maxSelections": 0,
+      "options": [
+        {
+          "text": "Mükemmel",
+          "orderIndex": 0
+        },
+        {
+          "text": "İyi",
+          "orderIndex": 1
+        },
+        {
+          "text": "Orta",
+          "orderIndex": 2
+        },
+        {
+          "text": "Kötü",
+          "orderIndex": 3
+        },
+        {
+          "text": "Çok kötü",
+          "orderIndex": 4
+        }
+      ]
+    },
+    {
+      "text": "Müşteri hizmetlerimiz hakkında ne düşünüyorsunuz?",
+      "type": 1,
+      "orderIndex": 2,
+      "isRequired": false,
+      "maxSelections": 0,
+      "options": []
+    },
+    {
+      "text": "Ürünlerimizi arkadaşlarınıza tavsiye eder misiniz?",
+      "type": 2,
+      "orderIndex": 3,
+      "isRequired": true,
+      "maxSelections": 0,
+      "options": [
+        {
+          "text": "Evet",
+          "orderIndex": 0
+        },
+        {
+          "text": "Hayır",
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "text": "Sizce hangi alanlarda kendimizi geliştirmeliyiz? (Birden fazla seçenek işaretleyebilirsiniz)",
+      "type": 3,
+      "orderIndex": 4,
+      "isRequired": true,
+      "maxSelections": 0,
+      "options": [
+        {
+          "text": "Ürün kalitesi",
+          "orderIndex": 0
+        },
+        {
+          "text": "Fiyatlandırma",
+          "orderIndex": 1
+        },
+        {
+          "text": "Müşteri hizmetleri",
+          "orderIndex": 2
+        },
+        {
+          "text": "Teslimat süresi",
+          "orderIndex": 3
+        },
+        {
+          "text": "Web sitesi kullanımı",
+          "orderIndex": 4
+        }
+      ]
+    },
+    {
+      "text": "Aşağıdaki özelliklerden size göre en önemli üç tanesini seçip sıralayınız.",
+      "type": 4,
+      "orderIndex": 5,
+      "isRequired": true,
+      "maxSelections": 3,
+      "options": [
+        {
+          "text": "Ürün kalitesi",
+          "orderIndex": 0
+        },
+        {
+          "text": "Fiyat",
+          "orderIndex": 1
+        },
+        {
+          "text": "Hızlı teslimat",
+          "orderIndex": 2
+        },
+        {
+          "text": "Müşteri desteği",
+          "orderIndex": 3
+        },
+        {
+          "text": "Kolay iade süreci",
+          "orderIndex": 4
+        },
+        {
+          "text": "Çeşitlilik",
+          "orderIndex": 5
+        },
+        {
+          "text": "Kullanım kolaylığı",
+          "orderIndex": 6
+        }
+      ]
+    }
+  ]
+}

@@ -35,7 +35,7 @@ public class PollController : ControllerBase
                 return Unauthorized("Kullanıcı kimliği bulunamadı.");
             }
 
-            int userId = int.Parse(userIdClaim.Value);
+            Guid userId = Guid.Parse(userIdClaim.Value);
 
             // Yeni anket oluştur
             var poll = new Poll
@@ -116,10 +116,10 @@ public class PollController : ControllerBase
                 return Unauthorized("Kullanıcı kimliği bulunamadı.");
             }
 
-            int userId = int.Parse(userIdClaim.Value);
+            Guid userId = Guid.Parse(userIdClaim.Value);
 
             // Anketi oluşturan kişi mi kontrol et
-            if (int.TryParse(poll.CreatedByUserId, out int result) && result != userId)
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
             {
                 return Forbid("Bu anketi düzenleme yetkiniz yok.");
             }
@@ -212,10 +212,10 @@ public class PollController : ControllerBase
                 return Unauthorized("Kullanıcı kimliği bulunamadı.");
             }
 
-            int userId = int.Parse(userIdClaim.Value);
+            Guid userId = Guid.Parse(userIdClaim.Value);
 
             // Anketi oluşturan kişi mi kontrol et
-            if (int.TryParse(poll.CreatedByUserId, out int result) && result != userId)
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
             {
                 return Forbid("Bu anketi silme yetkiniz yok.");
             }
@@ -289,7 +289,6 @@ public class PollController : ControllerBase
     {
         try
         {
-            // Anketin var olup olmadığını ve aktif olup olmadığını kontrol et
             var poll = await _context.Polls.FirstOrDefaultAsync(s => s.Id == pollId && s.IsActive);
 
             if (poll == null)
@@ -297,33 +296,27 @@ public class PollController : ControllerBase
                 return NotFound("Anket bulunamadı veya aktif değil.");
             }
 
-            // Anketin süresi doldu mu kontrol et
+            // Anketin süresi dolmuş mu kontrol et
             if (poll.ExpiryDate.HasValue && poll.ExpiryDate < DateTime.UtcNow)
             {
                 return BadRequest("Bu anket için yanıt süresi dolmuştur.");
             }
 
-            int? userId = null;
+            Guid? userId = null;
             string? sessionId = null;
 
-            // Cookie ile anonim kullanıcıları tanıma
             if (User.Identity == null || !User.Identity.IsAuthenticated)
             {
-                // Cookie'den PollSessionId al
+                // Anonim kullanıcı işlemi
                 Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
                 sessionId = cookieSessionId;
 
                 if (string.IsNullOrEmpty(sessionId))
                 {
                     sessionId = Guid.NewGuid().ToString();
-                    Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions
-                    {
-                        Expires = DateTime.Now.AddMonths(1),
-                        HttpOnly = true
-                    });
+                    Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
                 }
 
-                // Kullanıcının bu anketi daha önce yanıtlayıp yanıtlamadığını kontrol et
                 bool hasSubmitted = await _context.Responses
                     .AnyAsync(r => r.PollId == pollId && r.SessionId == sessionId);
 
@@ -336,16 +329,25 @@ public class PollController : ControllerBase
             {
                 // Giriş yapmış kullanıcı için
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim != null)
                 {
-                    return Unauthorized("Kullanıcı kimliği bulunamadı.");
+                    userId = Guid.Parse(userIdClaim.Value);
+                }
+                else
+                {
+                    // Kullanıcı kimliği yoksa oturum kimliğini kullan
+                    Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
+                    sessionId = cookieSessionId;
+
+                    if (string.IsNullOrEmpty(sessionId))
+                    {
+                        sessionId = Guid.NewGuid().ToString();
+                        Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
+                    }
                 }
 
-                userId = int.Parse(userIdClaim.Value);
-
-                // Kullanıcının bu anketi daha önce yanıtlayıp yanıtlamadığını kontrol et
                 bool hasSubmitted = await _context.Responses
-                    .AnyAsync(r => r.PollId == pollId && r.UserId == userId.ToString());
+                    .AnyAsync(r => r.PollId == pollId && (r.UserId == userId.ToString() || r.SessionId == sessionId));
 
                 if (hasSubmitted)
                 {
@@ -353,23 +355,22 @@ public class PollController : ControllerBase
                 }
             }
 
-            // Yeni bir Response oluştur
+            // Yeni Response oluşturuluyor
             var response = new Response
             {
                 PollId = pollId,
-                UserId = userId.ToString(),
+                UserId = userId?.ToString(),  // Kullanıcı ID'si varsa, varsa kullan
                 SessionId = sessionId,
                 SubmittedDate = DateTime.UtcNow,
                 Answers = new List<Answer>()
             };
 
-            // Her soru için cevap oluştur
+            // Yanıtları işleme
             if (responseDto.Answers != null)
             {
                 foreach (var answerDto in responseDto.Answers)
                 {
                     var question = await _context.Questions.FindAsync(answerDto.QuestionId);
-
                     if (question == null || question.PollId != pollId)
                     {
                         return BadRequest($"Geçersiz soru ID: {answerDto.QuestionId}");
@@ -382,16 +383,16 @@ public class PollController : ControllerBase
                         SelectedOptions = new List<SelectedOption>()
                     };
 
-                    // Seçenekli sorular için seçilen opsiyonları ekle
+                    // Seçenekli soruların işlenmesi
                     if (answerDto.SelectedOptionIds != null && answerDto.SelectedOptionIds.Any())
                     {
                         foreach (var optionData in answerDto.SelectedOptionIds)
                         {
                             int optionId = optionData.Key;
-                            int? rankOrder = optionData.Value; // Sıralama tipi sorular için
+                            int? rankOrder = optionData.Value;
 
-                            // Seçeneğin geçerli olup olmadığını kontrol et
-                            var option = await _context.Options.FirstOrDefaultAsync(o => o.Id == optionId && o.QuestionId == answerDto.QuestionId);
+                            var option = await _context.Options
+                                .FirstOrDefaultAsync(o => o.Id == optionId && o.QuestionId == answerDto.QuestionId);
 
                             if (option == null)
                             {
@@ -405,11 +406,10 @@ public class PollController : ControllerBase
                             });
                         }
 
-                        // Sıralama tipi sorular için seçilen seçenek sayısı kontrolü
+                        // Sıralama sorusu için kontrol
                         if (question.Type == QuestionType.Ranking && question.MaxSelections.HasValue)
                         {
                             int selectedCount = answerDto.SelectedOptionIds.Count;
-
                             if (selectedCount != question.MaxSelections.Value)
                             {
                                 return BadRequest($"Sıralama sorusu için {question.MaxSelections.Value} seçenek seçmeniz gerekmektedir.");
@@ -421,6 +421,7 @@ public class PollController : ControllerBase
                 }
             }
 
+            // Yanıt kaydediliyor
             _context.Responses.Add(response);
             await _context.SaveChangesAsync();
 

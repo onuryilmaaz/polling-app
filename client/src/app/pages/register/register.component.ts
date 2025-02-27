@@ -52,15 +52,17 @@ export class RegisterComponent implements OnInit {
         this.router.navigate(['/login']);
       },
       error: (err: HttpErrorResponse) => {
-        if (err!.status === 400) {
-          this.errors = err!.error;
-          this.matSnackBar.open('Validations Error', 'Close', {
+        console.error('Error response:', err);
+        if (err.status === 400) {
+          console.log('Validation errors:', err.error.errors); // Hata detaylarını görmek için
+          this.errors = err.error.errors;
+          this.matSnackBar.open('Validation Error', 'Close', {
             duration: 5000,
             horizontalPosition: 'center',
           });
         }
       },
-      complete: () => console.log('Register success'),
+      //complete: () => console.log('Register success'),
     });
   }
 
@@ -70,7 +72,7 @@ export class RegisterComponent implements OnInit {
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required]],
         fullName: ['', Validators.required],
-        roles: [''],
+        roles: [['User']],
         confirmPassword: ['', Validators.required],
       },
       {

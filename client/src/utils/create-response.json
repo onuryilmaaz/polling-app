@@ -1,0 +1,42 @@
+{
+  "answers": [
+    {
+      "questionId": 1,
+      "selectedOptionIds": {
+        "1": null
+      }
+    },
+    {
+      "questionId": 2,
+      "selectedOptionIds": {
+        "6": null
+      }
+    },
+    {
+      "questionId": 3,
+      "textAnswer": "Müşteri hizmetleriniz oldukça yardımsever ve hızlıydı."
+    },
+    {
+      "questionId": 4,
+      "selectedOptionIds": {
+        "11": null
+      }
+    },
+    {
+      "questionId": 5,
+      "selectedOptionIds": {
+        "13": null,
+        "14": null,
+        "16": null
+      }
+    },
+    {
+      "questionId": 6,
+      "selectedOptionIds": {
+        "18": 1,
+        "19": 2,
+        "20": 3
+      }
+    }
+  ]
+}

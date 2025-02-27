@@ -8,6 +8,12 @@
     @if(isLoggedIn()){
     <div *ngIf="authService.getUserDetail() as userDetail">
       <div class="flex gap-5 items-center">
+        @if(userDetail.roles == 'Admin'){
+        <button routerLink="/users" mat-menu-item>
+          <mat-icon> group </mat-icon>
+          <span>Users</span>
+        </button>
+        }
         <a
           [matMenuTriggerFor]="menu"
           class="flex gap-2 cursor-pointer items-center"
@@ -24,8 +30,8 @@
         </a>
         <mat-menu #menu="matMenu">
           <button (click)="logout()" mat-menu-item>
-            <mat-icon> logout </mat-icon>
-            <span>Logout</span>
+            <mat-icon> logout </mat-icon>Logout
+            <span class="px-10 text-start"></span>
           </button>
         </mat-menu>
       </div>
