@@ -1,0 +1,29 @@
+<div
+  *ngIf="activePolls.length > 0; else noPolls"
+  class="max-w-4xl mx-auto mt-8"
+>
+  <h2 class="text-2xl font-bold text-gray-800 mb-4">Aktif Anketler</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let poll of activePolls"
+      class="bg-white shadow-md rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ poll.title }}</h3>
+      <p class="text-gray-600 mb-3">{{ poll.description }}</p>
+      <p class="text-sm text-gray-500">Soru Sayısı: {{ poll.questionCount }}</p>
+      <p class="text-sm text-gray-500 mb-4">
+        Cevap Sayısı: {{ poll.responseCount }}
+      </p>
+      <a
+        [routerLink]="['/poll', poll.id]"
+        class="block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+      >
+        Ankete Git
+      </a>
+    </div>
+  </div>
+</div>
+
+<ng-template #noPolls>
+  <p class="text-center text-gray-500 mt-6">Aktif anket bulunamadı.</p>
+</ng-template>

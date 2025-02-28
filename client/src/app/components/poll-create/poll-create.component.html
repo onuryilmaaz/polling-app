@@ -1,0 +1,187 @@
+<div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+  <h2 class="text-2xl font-bold mb-6 text-center">Yeni Anket Oluştur</h2>
+
+  <form (ngSubmit)="onSubmit()" #pollForm="ngForm" class="space-y-6">
+    <!-- Anket Başlığı -->
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700"
+        >Anket Başlığı:</label
+      >
+      <input
+        type="text"
+        id="title"
+        name="title"
+        [(ngModel)]="poll.title"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Açıklama -->
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700"
+        >Açıklama:</label
+      >
+      <textarea
+        id="description"
+        name="description"
+        [(ngModel)]="poll.description"
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+      ></textarea>
+    </div>
+
+    <!-- Bitiş Tarihi -->
+    <div>
+      <label for="expiryDate" class="block text-sm font-medium text-gray-700"
+        >Bitiş Tarihi:</label
+      >
+      <input
+        type="datetime-local"
+        id="expiryDate"
+        name="expiryDate"
+        [(ngModel)]="poll.expiryDate"
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Aktif Mi? -->
+    <div class="flex items-center">
+      <input
+        type="checkbox"
+        id="isActive"
+        name="isActive"
+        [(ngModel)]="poll.isActive"
+        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+      />
+      <label for="isActive" class="ml-2 block text-sm text-gray-700"
+        >Aktif Mi?</label
+      >
+    </div>
+
+    <!-- Sorular -->
+    <div
+      *ngFor="let question of poll.questions; let i = index"
+      class="space-y-4 p-4 border border-gray-200 rounded-lg"
+    >
+      <h3 class="text-lg font-semibold">Soru {{ i + 1 }}</h3>
+
+      <!-- Soru Metni -->
+      <div>
+        <label
+          [for]="'questionText' + i"
+          class="block text-sm font-medium text-gray-700"
+          >Soru Metni:</label
+        >
+        <input
+          type="text"
+          [id]="'questionText' + i"
+          [name]="'questionText' + i"
+          [(ngModel)]="question.text"
+          required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <!-- Soru Türü -->
+      <div>
+        <label
+          [for]="'questionType' + i"
+          class="block text-sm font-medium text-gray-700"
+          >Soru Türü:</label
+        >
+        <select
+          [id]="'questionType' + i"
+          [name]="'questionType' + i"
+          [(ngModel)]="question.type"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="0">Tek Seçim</option>
+          <option value="1">Çoklu Seçim</option>
+          <option value="2">Metin</option>
+          <option value="3">Sıralama</option>
+        </select>
+      </div>
+
+      <!-- Zorunlu Mu? -->
+      <div class="flex items-center">
+        <input
+          type="checkbox"
+          [id]="'isRequired' + i"
+          [name]="'isRequired' + i"
+          [(ngModel)]="question.isRequired"
+          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+        />
+        <label [for]="'isRequired' + i" class="ml-2 block text-sm text-gray-700"
+          >Zorunlu Mu?</label
+        >
+      </div>
+
+      <!-- Maksimum Seçim Sayısı -->
+      <div>
+        <label
+          [for]="'maxSelections' + i"
+          class="block text-sm font-medium text-gray-700"
+          >Maksimum Seçim Sayısı:</label
+        >
+        <input
+          type="number"
+          [id]="'maxSelections' + i"
+          [name]="'maxSelections' + i"
+          [(ngModel)]="question.maxSelections"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <!-- Seçenekler -->
+      <div
+        *ngFor="let option of question.options; let j = index"
+        class="space-y-2 p-3 border border-gray-100 rounded-md"
+      >
+        <h4 class="text-md font-medium">Seçenek {{ j + 1 }}</h4>
+        <div>
+          <label
+            [for]="'optionText' + i + '-' + j"
+            class="block text-sm font-medium text-gray-700"
+            >Seçenek Metni:</label
+          >
+          <input
+            type="text"
+            [id]="'optionText' + i + '-' + j"
+            [name]="'optionText' + i + '-' + j"
+            [(ngModel)]="option.text"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+      </div>
+
+      <!-- Seçenek Ekle Butonu -->
+      <button
+        type="button"
+        (click)="addOption(i)"
+        class="w-full bg-indigo-100 text-indigo-700 px-4 py-2 rounded-md hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        Seçenek Ekle
+      </button>
+    </div>
+
+    <!-- Soru Ekle Butonu -->
+    <button
+      type="button"
+      (click)="addQuestion()"
+      class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      Soru Ekle
+    </button>
+
+    <!-- Anketi Oluştur Butonu -->
+    <button
+      type="submit"
+      [disabled]="!pollForm.form.valid"
+      class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      routerLink="/poll-list"
+    >
+      Anketi Oluştur
+    </button>
+  </form>
+</div>

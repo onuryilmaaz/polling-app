@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
+import { PollListComponent } from "../../components/poll-list/poll-list.component";
 
 @Component({
   selector: 'app-poll',
   standalone: true,
-  imports: [],
+  imports: [PollListComponent],
   templateUrl: './poll.component.html',
-  styleUrl: './poll.component.css'
+  styleUrl: './poll.component.css',
 })
-export class PollComponent {
-
-}
+export class PollComponent {}

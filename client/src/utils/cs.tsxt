@@ -1,0 +1,500 @@
+using api.Data;
+using api.Dtos;
+using api.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+[ApiController]
+[Route("api/[controller]")]
+public class PollController : ControllerBase
+{
+    private readonly AppDbContext _context;
+
+    public PollController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    // Admin'in anket oluşturması için metot
+    [HttpPost("create")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreatePoll([FromBody] PollCreateDto pollDto)
+    {
+        try
+        {
+            // Giriş yapmış kullanıcının ID'sini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            Guid userId = Guid.Parse(userIdClaim.Value);
+
+            // Yeni anket oluştur
+            var poll = new Poll
+            {
+                Title = pollDto.Title ?? string.Empty,
+                Description = pollDto.Description,
+                CreatedDate = DateTime.UtcNow,
+                ExpiryDate = pollDto.ExpiryDate,
+                IsActive = pollDto.IsActive,
+                CreatedByUserId = userId.ToString(),
+                Questions = new List<Question>()
+            };
+
+            // Soruları ekle
+            if (pollDto.Questions != null)
+            {
+                foreach (var questionDto in pollDto.Questions)
+                {
+                    var question = new Question
+                    {
+                        Text = questionDto.Text ?? string.Empty,
+                        Type = questionDto.Type,
+                        OrderIndex = questionDto.OrderIndex,
+                        IsRequired = questionDto.IsRequired,
+                        MaxSelections = questionDto.MaxSelections,
+                        Options = new List<Option>()
+                    };
+
+                    // Soru seçeneklerini ekle (eğer varsa)
+                    if (questionDto.Options != null && questionDto.Options.Any())
+                    {
+                        foreach (var optionDto in questionDto.Options)
+                        {
+                            question.Options.Add(new Option
+                            {
+                                Text = optionDto.Text ?? string.Empty,
+                                OrderIndex = optionDto.OrderIndex
+                            });
+                        }
+                    }
+
+                    poll.Questions.Add(question);
+                }
+            }
+
+            _context.Polls.Add(poll);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetPollById), new { id = poll.Id }, new { id = poll.Id, message = "Anket başarıyla oluşturuldu." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket oluşturulurken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Admin'in anket düzenlemesi için metot
+    [HttpPut("update/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdatePoll(int id, [FromBody] PollUpdateDto pollDto)
+    {
+        try
+        {
+            var poll = await _context.Polls
+                .Include(s => s.Questions!)
+                .ThenInclude(q => q.Options!)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (poll == null)
+            {
+                return NotFound("Anket bulunamadı.");
+            }
+
+            // Giriş yapmış kullanıcının ID'sini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            Guid userId = Guid.Parse(userIdClaim.Value);
+
+            // Anketi oluşturan kişi mi kontrol et
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
+            {
+                return Forbid("Bu anketi düzenleme yetkiniz yok.");
+            }
+
+            // Anket bilgilerini güncelle
+            poll.Title = pollDto.Title ?? string.Empty;
+            poll.Description = pollDto.Description;
+            poll.ExpiryDate = pollDto.ExpiryDate;
+            poll.IsActive = pollDto.IsActive;
+
+            // Mevcut soruları ve seçenekleri temizle
+            if (poll.Questions != null)
+            {
+                var existingQuestions = poll.Questions.ToList();
+                foreach (var question in existingQuestions)
+                {
+                    if (question.Options != null)
+                    {
+                        var existingOptions = question.Options.ToList();
+                        foreach (var option in existingOptions)
+                        {
+                            _context.Options.Remove(option);
+                        }
+                    }
+                    _context.Questions.Remove(question);
+                }
+            }
+
+            // Yeni soruları ekle
+            poll.Questions = new List<Question>();
+            if (pollDto.Questions != null)
+            {
+                foreach (var questionDto in pollDto.Questions)
+                {
+                    var question = new Question
+                    {
+                        Text = questionDto.Text ?? string.Empty,
+                        Type = questionDto.Type,
+                        OrderIndex = questionDto.OrderIndex,
+                        IsRequired = questionDto.IsRequired,
+                        MaxSelections = questionDto.MaxSelections,
+                        Options = new List<Option>()
+                    };
+
+                    // Soru seçeneklerini ekle (eğer varsa)
+                    if (questionDto.Options != null && questionDto.Options.Any())
+                    {
+                        foreach (var optionDto in questionDto.Options)
+                        {
+                            question.Options.Add(new Option
+                            {
+                                Text = optionDto.Text ?? string.Empty,
+                                OrderIndex = optionDto.OrderIndex
+                            });
+                        }
+                    }
+
+                    poll.Questions.Add(question);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Anket başarıyla güncellendi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket güncellenirken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Admin'in anket silmesi için metot
+    [HttpDelete("delete/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePoll(int id)
+    {
+        try
+        {
+            var poll = await _context.Polls.FindAsync(id);
+
+            if (poll == null)
+            {
+                return NotFound("Anket bulunamadı.");
+            }
+
+            // Giriş yapmış kullanıcının ID'sini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            Guid userId = Guid.Parse(userIdClaim.Value);
+
+            // Anketi oluşturan kişi mi kontrol et
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
+            {
+                return Forbid("Bu anketi silme yetkiniz yok.");
+            }
+
+            _context.Polls.Remove(poll);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Anket başarıyla silindi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket silinirken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Anket detaylarını getiren metot
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPollById(int id)
+    {
+        try
+        {
+            var poll = await _context.Polls
+                .Include(s => s.Questions!.OrderBy(q => q.OrderIndex))
+                .ThenInclude(q => q.Options!.OrderBy(o => o.OrderIndex))
+                .Select(s => new PollDetailDto
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Description = s.Description,
+                    CreatedDate = s.CreatedDate,
+                    ExpiryDate = s.ExpiryDate,
+                    IsActive = s.IsActive,
+                    Questions = s.Questions != null
+                        ? s.Questions.Select(q => new QuestionDetailDto
+                        {
+                            Id = q.Id,
+                            Text = q.Text,
+                            Type = q.Type,
+                            OrderIndex = q.OrderIndex,
+                            IsRequired = q.IsRequired,
+                            MaxSelections = q.MaxSelections,
+                            Options = q.Options != null
+                                ? q.Options.Select(o => new OptionDetailDto
+                                {
+                                    Id = o.Id,
+                                    Text = o.Text,
+                                    OrderIndex = o.OrderIndex
+                                }).ToList()
+                                : new List<OptionDetailDto>()
+                        }).ToList()
+                        : new List<QuestionDetailDto>()
+                })
+                .FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
+
+            if (poll == null)
+            {
+                return NotFound("Anket bulunamadı veya aktif değil.");
+            }
+
+            return Ok(poll);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket bilgileri alınırken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Kullanıcının ankete yanıt vermesi için metot
+    [HttpPost("submit/{pollId}")]
+    public async Task<IActionResult> SubmitPollResponse(int pollId, [FromBody] PollResponseDto responseDto)
+    {
+        try
+        {
+            var poll = await _context.Polls.FirstOrDefaultAsync(s => s.Id == pollId && s.IsActive);
+
+            if (poll == null)
+            {
+                return NotFound("Anket bulunamadı veya aktif değil.");
+            }
+
+            // Anketin süresi dolmuş mu kontrol et
+            if (poll.ExpiryDate.HasValue && poll.ExpiryDate < DateTime.UtcNow)
+            {
+                return BadRequest("Bu anket için yanıt süresi dolmuştur.");
+            }
+
+            Guid? userId = null;
+            string? sessionId = null;
+
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                // Anonim kullanıcı işlemi
+                Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
+                sessionId = cookieSessionId;
+
+                if (string.IsNullOrEmpty(sessionId))
+                {
+                    sessionId = Guid.NewGuid().ToString();
+                    Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
+                }
+
+                bool hasSubmitted = await _context.Responses
+                    .AnyAsync(r => r.PollId == pollId && r.SessionId == sessionId);
+
+                if (hasSubmitted)
+                {
+                    return BadRequest("Bu anketi daha önce yanıtladınız.");
+                }
+            }
+            else
+            {
+                // Giriş yapmış kullanıcı için
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null)
+                {
+                    userId = Guid.Parse(userIdClaim.Value);
+                }
+                else
+                {
+                    // Kullanıcı kimliği yoksa oturum kimliğini kullan
+                    Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
+                    sessionId = cookieSessionId;
+
+                    if (string.IsNullOrEmpty(sessionId))
+                    {
+                        sessionId = Guid.NewGuid().ToString();
+                        Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
+                    }
+                }
+
+                bool hasSubmitted = await _context.Responses
+                    .AnyAsync(r => r.PollId == pollId && (r.UserId == userId.ToString() || r.SessionId == sessionId));
+
+                if (hasSubmitted)
+                {
+                    return BadRequest("Bu anketi daha önce yanıtladınız.");
+                }
+            }
+
+            // Yeni Response oluşturuluyor
+            var response = new Response
+            {
+                PollId = pollId,
+                UserId = userId?.ToString(),  // Kullanıcı ID'si varsa, varsa kullan
+                SessionId = sessionId,
+                SubmittedDate = DateTime.UtcNow,
+                Answers = new List<Answer>()
+            };
+
+            // Yanıtları işleme
+            if (responseDto.Answers != null)
+            {
+                foreach (var answerDto in responseDto.Answers)
+                {
+                    var question = await _context.Questions.FindAsync(answerDto.QuestionId);
+                    if (question == null || question.PollId != pollId)
+                    {
+                        return BadRequest($"Geçersiz soru ID: {answerDto.QuestionId}");
+                    }
+
+                    var answer = new Answer
+                    {
+                        QuestionId = answerDto.QuestionId,
+                        TextAnswer = answerDto.TextAnswer,
+                        SelectedOptions = new List<SelectedOption>()
+                    };
+
+                    // Seçenekli soruların işlenmesi
+                    if (answerDto.SelectedOptionIds != null && answerDto.SelectedOptionIds.Any())
+                    {
+                        foreach (var optionData in answerDto.SelectedOptionIds)
+                        {
+                            int optionId = optionData.Key;
+                            int? rankOrder = optionData.Value;
+
+                            var option = await _context.Options
+                                .FirstOrDefaultAsync(o => o.Id == optionId && o.QuestionId == answerDto.QuestionId);
+
+                            if (option == null)
+                            {
+                                return BadRequest($"Geçersiz seçenek ID: {optionId}");
+                            }
+
+                            answer.SelectedOptions.Add(new SelectedOption
+                            {
+                                OptionId = optionId,
+                                RankOrder = rankOrder
+                            });
+                        }
+
+                        // Sıralama sorusu için kontrol
+                        if (question.Type == QuestionType.Ranking && question.MaxSelections.HasValue)
+                        {
+                            int selectedCount = answerDto.SelectedOptionIds.Count;
+                            if (selectedCount != question.MaxSelections.Value)
+                            {
+                                return BadRequest($"Sıralama sorusu için {question.MaxSelections.Value} seçenek seçmeniz gerekmektedir.");
+                            }
+                        }
+                    }
+
+                    response.Answers.Add(answer);
+                }
+            }
+
+            // Yanıt kaydediliyor
+            _context.Responses.Add(response);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Anket yanıtınız başarıyla kaydedildi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket yanıtı kaydedilirken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Tüm aktif anketleri listeleyen metot
+    [HttpGet("active")]
+    public async Task<IActionResult> GetActivePolls()
+    {
+        try
+        {
+            var activePolls = await _context.Polls
+                .Where(s => s.IsActive && (!s.ExpiryDate.HasValue || s.ExpiryDate > DateTime.UtcNow))
+                .Select(s => new PollListDto
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Description = s.Description,
+                    CreatedDate = s.CreatedDate,
+                    ExpiryDate = s.ExpiryDate,
+                    QuestionCount = s.Questions != null ? s.Questions.Count : 0
+                })
+                .ToListAsync();
+
+            return Ok(activePolls);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anketler listelenirken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    // Admin için oluşturduğu tüm anketleri listeleyen metot
+    [HttpGet("my-polls")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetMyPolls()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var myPolls = await _context.Polls
+                .Where(s => s.CreatedByUserId == userId.ToString())
+                .Select(s => new PollListDto
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Description = s.Description,
+                    CreatedDate = s.CreatedDate,
+                    ExpiryDate = s.ExpiryDate,
+                    IsActive = s.IsActive,
+                    QuestionCount = s.Questions != null ? s.Questions.Count : 0,
+                    ResponseCount = s.Responses != null ? s.Responses.Count : 0
+                })
+                .ToListAsync();
+
+            return Ok(myPolls);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anketler listelenirken bir hata oluştu: {ex.Message}");
+        }
+    }
+}

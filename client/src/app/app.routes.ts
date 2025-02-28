@@ -6,6 +6,9 @@ import { CreatePollComponent } from './pages/create-poll/create-poll.component';
 import { roleGuard } from './guards/role.guard';
 import { UsersComponent } from './pages/users/users.component';
 import { HomeComponent } from './pages/home/home.component';
+import { PollListComponent } from './components/poll-list/poll-list.component';
+import { PollCreateComponent } from './components/poll-create/poll-create.component';
+import { PollDetailComponent } from './components/poll-detail/poll-detail.component';
 
 export const routes: Routes = [
   {
@@ -21,8 +24,20 @@ export const routes: Routes = [
     component: RegisterComponent,
   },
   {
-    path: 'poll/:id',
+    path: 'poll',
     component: PollComponent,
+  },
+  {
+    path: 'poll-list',
+    component: PollListComponent,
+  },
+  {
+    path: 'poll-create',
+    component: PollCreateComponent,
+  },
+  {
+    path: 'poll/:id',
+    component: PollDetailComponent,
   },
   {
     path: 'create-poll',

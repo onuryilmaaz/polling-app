@@ -425,7 +425,7 @@ public class PollController : ControllerBase
             _context.Responses.Add(response);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Anket yanıtınız başarıyla kaydedildi." });
+            return Ok(new { message = "Anket yanıtınız başarıyla kaydedildi.", });
         }
         catch (Exception ex)
         {
@@ -448,7 +448,8 @@ public class PollController : ControllerBase
                     Description = s.Description,
                     CreatedDate = s.CreatedDate,
                     ExpiryDate = s.ExpiryDate,
-                    QuestionCount = s.Questions != null ? s.Questions.Count : 0
+                    QuestionCount = s.Questions != null ? s.Questions.Count : 0,
+                    ResponseCount = s.Responses != null ? s.Responses.Count : 0
                 })
                 .ToListAsync();
 
