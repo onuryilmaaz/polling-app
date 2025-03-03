@@ -30,20 +30,18 @@ export const routes: Routes = [
   {
     path: 'poll-list',
     component: PollListComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] },
   },
   {
     path: 'poll-create',
     component: PollCreateComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] },
   },
   {
     path: 'poll/:id',
     component: PollDetailComponent,
-  },
-  {
-    path: 'create-poll',
-    component: CreatePollComponent,
-    canActivate: [roleGuard],
-    data: { roles: ['Admin'] },
   },
   {
     path: 'users',

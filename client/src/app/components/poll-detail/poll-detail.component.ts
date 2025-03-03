@@ -1,56 +1,3 @@
-// import { Component, OnInit } from '@angular/core';
-// import { ActivatedRoute } from '@angular/router';
-// import { PollService } from '../../services/poll.service';
-// import { PollDetailDto } from '../../models/poll.models';
-// import { CommonModule } from '@angular/common';
-
-// @Component({
-//   selector: 'app-poll-detail',
-//   standalone: true,
-//   imports: [CommonModule],
-//   templateUrl: './poll-detail.component.html',
-//   styleUrls: ['./poll-detail.component.css'],
-// })
-// export class PollDetailComponent implements OnInit {
-//   poll: PollDetailDto | null = null;
-//   pollId: number | null = null;
-
-//   constructor(
-//     private route: ActivatedRoute,
-//     private pollService: PollService
-//   ) {}
-
-//   ngOnInit(): void {
-//     // URL'den poll ID'sini al
-//     this.pollId = +this.route.snapshot.paramMap.get('id')!;
-
-//     // Anket detaylarını yükle
-//     if (this.pollId) {
-//       this.loadPollDetails(this.pollId);
-//     }
-//   }
-
-//   loadPollDetails(pollId: number): void {
-//     this.pollService.getPollById(pollId).subscribe({
-//       next: (poll) => {
-//         this.poll = poll;
-//       },
-//       error: (err) => {
-//         console.error('Anket detayları yüklenirken hata oluştu:', err);
-//         alert('Anket detayları yüklenirken bir hata oluştu.');
-//       },
-//     });
-//   }
-
-//   submitResponse(): void {
-//     if (this.pollId) {
-//       // Burada kullanıcının cevaplarını API'ye gönderebilirsiniz
-//       console.log('Ankete cevap gönderildi:', this.poll);
-//       alert('Ankete cevabınız başarıyla gönderildi!');
-//     }
-//   }
-// }
-
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PollService } from '../../services/poll.service';
@@ -59,24 +6,36 @@ import {
   PollResponseDto,
   AnswerDto,
 } from '../../models/poll.models';
-import { FormsModule } from '@angular/forms'; // Bu satırı ekleyin
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+
+// Updated enum to match backend
+enum QuestionType {
+  MultipleChoice = 0, // Çoktan seçmeli (tek seçim)
+  Text = 1, // Metin cevap
+  YesNo = 2, // Evet/Hayır
+  MultiSelect = 3, // Çoklu seçim (multiple options)
+  Ranking = 4, // Sıralama
+}
 
 @Component({
   selector: 'app-poll-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule], // FormsModule'ü ekleyin
+  imports: [CommonModule, FormsModule],
   templateUrl: './poll-detail.component.html',
   styleUrls: ['./poll-detail.component.css'],
 })
 export class PollDetailComponent implements OnInit {
   poll: PollDetailDto | null = null;
   pollId: number | null = null;
+  questionType = QuestionType; // Expose enum to template
 
-  // Kullanıcının cevaplarını saklamak için
-  selectedOptions: { [questionId: number]: number | number[] } = {};
+  // User's answers
+  selectedOptions: { [questionId: number]: number | number[] | boolean } = {};
   textAnswers: { [questionId: number]: string } = {};
-  rankedOptions: { [questionId: number]: { [optionId: number]: number } } = {};
+  rankedOptions: {
+    [questionId: number]: { [optionId: number]: number | null };
+  } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -84,11 +43,11 @@ export class PollDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // URL'den poll ID'sini al
-    this.pollId = +this.route.snapshot.paramMap.get('id')!;
+    // Get poll ID from URL
+    const idParam = this.route.snapshot.paramMap.get('id');
 
-    // Anket detaylarını yükle
-    if (this.pollId) {
+    if (idParam) {
+      this.pollId = +idParam;
       this.loadPollDetails(this.pollId);
     }
   }
@@ -97,12 +56,24 @@ export class PollDetailComponent implements OnInit {
     this.pollService.getPollById(pollId).subscribe({
       next: (poll) => {
         this.poll = poll;
-        // Ranked options için başlangıç değerlerini ayarla
-        this.poll.questions.forEach((question) => {
-          if (question.type === 3) {
-            this.rankedOptions[question.id] = {};
-          }
-        });
+
+        // Initialize data structures for each question type
+        if (this.poll.questions) {
+          this.poll.questions.forEach((question) => {
+            // For multi select questions, initialize as array
+            if (question.type === QuestionType.MultiSelect) {
+              this.selectedOptions[question.id] = [];
+            }
+
+            // For ranking questions, initialize object for each option
+            if (question.type === QuestionType.Ranking && question.options) {
+              this.rankedOptions[question.id] = {};
+              question.options.forEach((option) => {
+                this.rankedOptions[question.id][option.id] = null;
+              });
+            }
+          });
+        }
       },
       error: (err) => {
         console.error('Anket detayları yüklenirken hata oluştu:', err);
@@ -111,128 +82,187 @@ export class PollDetailComponent implements OnInit {
     });
   }
 
-  // submitResponse(): void {
-  //   if (!this.pollId || !this.poll) {
-  //     return;
-  //   }
+  // Helper method to check if an option is selected in a multi select question
+  isOptionSelected(questionId: number, optionId: number): boolean {
+    const selected = this.selectedOptions[questionId];
+    if (Array.isArray(selected)) {
+      return selected.includes(optionId);
+    }
+    return false;
+  }
 
-  //   // Cevapları topla
-  //   const answers: AnswerDto[] = [];
+  // Toggle multi select selection
+  toggleMultiSelect(questionId: number, optionId: number): void {
+    if (!Array.isArray(this.selectedOptions[questionId])) {
+      this.selectedOptions[questionId] = [];
+    }
 
-  //   this.poll.questions.forEach((question) => {
-  //     // Sadece gerçekten veri varsa cevap ekle
-  //     const selected = this.selectedOptions[question.id];
-  //     const textAnswer = this.textAnswers[question.id];
-  //     const rankedOptions = this.rankedOptions[question.id];
+    const index = (this.selectedOptions[questionId] as number[]).indexOf(
+      optionId
+    );
 
-  //     // Cevap verilmemiş soruları atla
-  //     if (!selected && !textAnswer && !rankedOptions) {
-  //       return;
-  //     }
+    if (index === -1) {
+      // Add option if not already selected
+      (this.selectedOptions[questionId] as number[]).push(optionId);
+    } else {
+      // Remove option if already selected
+      (this.selectedOptions[questionId] as number[]).splice(index, 1);
+    }
+  }
 
-  //     const answer: AnswerDto = { questionId: question.id };
+  // Helper method to create array for ranking dropdown
+  getNumberArray(length: number | undefined): number[] {
+    return Array.from({ length: length || 0 }, (_, i) => i + 1);
+  }
 
-  //     if (question.type === 0 || question.type === 1) {
-  //       // Tekli veya Çoklu Seçim
-  //       if (selected) {
-  //         answer.selectedOptionIds = Array.isArray(selected) ? selected : [selected];
-  //       } else {
-  //         // Hiçbir şey seçilmediyse boş dizi gönderme
-  //         answer.selectedOptionIds = [];
-  //       }
-  //     } else if (question.type === 2) {
-  //       // Metin Cevabı - sadece gerçek bir cevap varsa ayarla
-  //       if (textAnswer && textAnswer.trim()) {
-  //         answer.textAnswer = textAnswer;
-  //       } else {
-  //         answer.textAnswer = '';
-  //       }
-  //     } else if (question.type === 3) {
-  //       // Sıralama
-  //       if (rankedOptions && Object.keys(rankedOptions).length > 0) {
-  //         answer.selectedOptionIds = Object.keys(rankedOptions).map(Number);
-  //       } else {
-  //         answer.selectedOptionIds = [];
-  //       }
-  //     }
+  // Validate if required questions are answered
+  validateForm(): boolean {
+    if (!this.poll || !this.poll.questions) return false;
 
-  //     answers.push(answer);
-  //   });
+    for (const question of this.poll.questions) {
+      if (!question.isRequired) continue;
 
-  //   // Hiç cevap yoksa gönderme
-  //   if (answers.length === 0) {
-  //     alert('Lütfen en az bir soruyu cevaplayın.');
-  //     return;
-  //   }
+      switch (question.type) {
+        case QuestionType.MultipleChoice: // Single choice
+          if (this.selectedOptions[question.id] === undefined) {
+            alert(`Lütfen "${question.text}" sorusunu cevaplayınız.`);
+            return false;
+          }
+          break;
 
-  //   // API'ye gönder
-  //   const responseDto: PollResponseDto = { answers };
-  //   console.log('Gönderilen cevaplar:', responseDto);
+        case QuestionType.MultiSelect: // Multi select
+          const selected = this.selectedOptions[question.id] as number[];
+          if (!selected || !Array.isArray(selected) || selected.length === 0) {
+            alert(`Lütfen "${question.text}" sorusunu cevaplayınız.`);
+            return false;
+          }
+          break;
 
-  //   this.pollService.submitPollResponse(this.pollId, responseDto).subscribe({
-  //     next: (response) => {
-  //       console.log('Ankete cevap gönderildi:', response);
-  //       alert('Ankete cevabınız başarıyla gönderildi!');
-  //     },
-  //     error: (err) => {
-  //       console.error('Ankete cevap gönderilirken hata oluştu:', err);
-  //       // Daha detaylı hata bilgisi göster
-  //       if (err.error && err.error.message) {
-  //         alert(`Hata: ${err.error.message}`);
-  //       } else {
-  //         alert('Ankete cevap gönderilirken bir hata oluştu.');
-  //       }
-  //     },
-  //   });
-  // }
+        case QuestionType.Text: // Text
+          if (
+            !this.textAnswers[question.id] ||
+            this.textAnswers[question.id].trim() === ''
+          ) {
+            alert(`Lütfen "${question.text}" sorusunu cevaplayınız.`);
+            return false;
+          }
+          break;
+
+        case QuestionType.Ranking: // Ranking
+          const rankingComplete = Object.values(
+            this.rankedOptions[question.id] || {}
+          ).every((v) => v !== null);
+          if (!rankingComplete) {
+            alert(
+              `Lütfen "${question.text}" sorusundaki tüm seçenekleri sıralayınız.`
+            );
+            return false;
+          }
+          break;
+
+        case QuestionType.YesNo: // Yes/No
+          if (this.selectedOptions[question.id] === undefined) {
+            alert(`Lütfen "${question.text}" sorusunu cevaplayınız.`);
+            return false;
+          }
+          break;
+      }
+    }
+
+    return true;
+  }
+
+  // Convert ranking data to the required structure for submission
+  prepareRankingData(questionId: number): { [key: number]: number } {
+    const result: { [key: number]: number } = {};
+    const rankings = this.rankedOptions[questionId];
+
+    if (rankings) {
+      for (const [optionId, rank] of Object.entries(rankings)) {
+        if (rank !== null) {
+          result[parseInt(optionId)] = rank;
+        }
+      }
+    }
+
+    return result;
+  }
 
   submitResponse(): void {
     if (!this.pollId || !this.poll) {
       return;
     }
 
-    // Cevapları topla
+    // Validate form first
+    if (!this.validateForm()) {
+      return;
+    }
+
     const answers: AnswerDto[] = [];
+    const responseDto: PollResponseDto = {
+      answers: [],
+    };
 
     this.poll.questions.forEach((question) => {
-      const answer: AnswerDto = { questionId: question.id };
+      const answer: AnswerDto = {
+        questionId: question.id,
+        selectedOptionIds: {}, // Ensure selectedOptionIds is initialized as an empty object
+      };
 
-      if (question.type === 0 || question.type === 1) {
-        // Tekli veya Çoklu Seçim
-        const selectedOptions = this.selectedOptions[question.id];
-        if (selectedOptions) {
-          answer.selectedOptionIds = Array.isArray(selectedOptions)
-            ? selectedOptions
-            : [selectedOptions];
-        } else {
-          console.error(`Soru ${question.id} için seçenek seçilmedi.`);
-          return;
-        }
-      } else if (question.type === 2) {
-        // Metin Cevabı
-        const textAnswer = this.textAnswers[question.id];
-        if (textAnswer) {
-          answer.textAnswer = textAnswer;
-        } else {
-          console.error(`Soru ${question.id} için metin cevabı girilmedi.`);
-          return;
-        }
-      } else if (question.type === 3) {
-        // Sıralama
-        const rankedOptions = this.rankedOptions[question.id];
-        if (rankedOptions && Object.keys(rankedOptions).length > 0) {
-          answer.selectedOptionIds = Object.keys(rankedOptions).map(Number);
-        } else {
-          console.error(`Soru ${question.id} için sıralama yapılmadı.`);
-          return;
-        }
+      switch (question.type) {
+        case QuestionType.MultipleChoice:
+          const selectedOption = this.selectedOptions[question.id];
+          if (
+            selectedOption !== undefined &&
+            typeof selectedOption === 'number'
+          ) {
+            if (answer.selectedOptionIds != undefined)
+              answer.selectedOptionIds[selectedOption] = null; // Safe to index here
+          }
+          break;
+
+        case QuestionType.MultiSelect:
+          const selectedOptions = this.selectedOptions[question.id] as number[];
+          if (selectedOptions && selectedOptions.length > 0) {
+            selectedOptions.forEach((option) => {
+              if (answer.selectedOptionIds != undefined)
+                answer.selectedOptionIds[option] = null; // Safe to index here
+            });
+          }
+          break;
+
+        case QuestionType.Text:
+          const textAnswer = this.textAnswers[question.id];
+          if (textAnswer) {
+            answer.textAnswer = textAnswer;
+            // No need to reinitialize selectedOptionIds here
+          }
+          break;
+
+        case QuestionType.Ranking:
+          const rankingData = this.prepareRankingData(question.id);
+          Object.keys(rankingData).forEach((key) => {
+            if (answer.selectedOptionIds != undefined)
+              answer.selectedOptionIds[parseInt(key)] = null; // Safe to index here
+          });
+          break;
+
+        case QuestionType.YesNo:
+          const yesNoAnswer = this.selectedOptions[question.id];
+          if (yesNoAnswer !== undefined) {
+            const numericValue = yesNoAnswer === true ? 1 : 0;
+            if (answer.selectedOptionIds != undefined)
+              answer.selectedOptionIds[numericValue] = null; // Safe to index here
+          }
+          break;
       }
 
       answers.push(answer);
     });
 
-    // API'ye gönder
-    const responseDto: PollResponseDto = { answers };
+    responseDto.answers = answers;
+
+    // Send to API
     this.pollService.submitPollResponse(this.pollId, responseDto).subscribe({
       next: (response) => {
         console.log('Ankete cevap gönderildi:', response);
@@ -240,8 +270,8 @@ export class PollDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Ankete cevap gönderilirken hata oluştu:', err);
-        if (err.error && err.error.errors) {
-          console.log('Validation Errors:', err.error.errors);
+        if (err.error) {
+          console.log('Validation Errors:', err.error);
         }
         alert('Ankete cevap gönderilirken bir hata oluştu.');
       },

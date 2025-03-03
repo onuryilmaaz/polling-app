@@ -96,9 +96,10 @@
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         >
           <option value="0">Tek Seçim</option>
-          <option value="1">Çoklu Seçim</option>
-          <option value="2">Metin</option>
-          <option value="3">Sıralama</option>
+          <option value="1">Metin</option>
+          <option value="2">Doğru Yanlış</option>
+          <option value="3">Çoklu Seçim</option>
+          <option value="4">Sıralama</option>
         </select>
       </div>
 
@@ -179,7 +180,6 @@
       type="submit"
       [disabled]="!pollForm.form.valid"
       class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      routerLink="/poll-list"
     >
       Anketi Oluştur
     </button>

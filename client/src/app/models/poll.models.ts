@@ -85,21 +85,24 @@ export interface OptionDetailDto {
   orderIndex: number;
 }
 
-// export interface AnswerDto {
-//   questionId: number;
-//   textAnswer?: string;
-//   selectedOptionIds?: Map<number, number>; // Seçenek ID'si ve sıralama (rank) bilgisi
-// }
-
 export interface AnswerDto {
   questionId: number;
   textAnswer?: string;
-  selectedOptionIds?: number[];
+  selectedOptionIds?: { [key: number]: null };
 }
 
 export enum QuestionType {
-  SingleChoice = 0,
-  MultipleChoice = 1,
-  Text = 2,
-  Ranking = 3,
+  MultipleChoice = 0, // Çoktan seçmeli (tek seçim)
+  Text = 1, // Metin cevap
+  YesNo = 2, // Evet/Hayır
+  MultiSelect = 3, // Çoklu seçim (multiple options)
+  Ranking = 4, // Sıralama
 }
+
+// export enum QuestionType {
+//   SingleChoice = 0,
+//   Text = 2,
+//   YesNo = 4,
+//   MultipleChoice = 1,
+//   Ranking = 3,
+// }

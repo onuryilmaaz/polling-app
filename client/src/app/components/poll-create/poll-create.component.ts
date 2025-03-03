@@ -1,19 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
-import {
-  PollCreateDto,
-  QuestionCreateDto,
-  OptionCreateDto,
-  QuestionType,
-} from '../../models/poll.models';
+import { Router } from '@angular/router';
+
+import { PollCreateDto, QuestionType } from '../../models/poll.models';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-poll-create',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterLink],
+  imports: [FormsModule, CommonModule],
   templateUrl: './poll-create.component.html',
   styleUrls: ['./poll-create.component.css'],
 })
@@ -26,7 +22,8 @@ export class PollCreateComponent implements OnInit {
     questions: [],
   };
 
-  constructor(private pollService: PollService) {}
+  //constructor(private pollService: PollService) {}
+  constructor(private pollService: PollService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -34,7 +31,7 @@ export class PollCreateComponent implements OnInit {
   addQuestion(): void {
     this.poll.questions.push({
       text: '',
-      type: QuestionType.SingleChoice,
+      type: QuestionType.YesNo,
       orderIndex: this.poll.questions.length,
       isRequired: false,
       maxSelections: undefined,
@@ -50,25 +47,7 @@ export class PollCreateComponent implements OnInit {
     });
   }
 
-  // Form gönderildiğinde çağrılır
-  // onSubmit(): void {
-  //   this.pollService.createPoll(this.poll).subscribe({
-  //     next: (response) => {
-  //       console.log('Anket başarıyla oluşturuldu:', response);
-  //       alert('Anket başarıyla oluşturuldu!');
-  //     },
-  //     error: (err) => {
-  //       console.error('Anket oluşturulurken hata oluştu:', err);
-  //       alert('Anket oluşturulurken bir hata oluştu.');
-  //     },
-  //   });
-  // }
-
   onSubmit(): void {
-    // expiryDate'i ISO 8601 formatına dönüştür
-    // if (this.poll.expiryDate) {
-    //   this.poll.expiryDate = new Date(this.poll.expiryDate).toISOString();
-    // }
     if (this.poll.expiryDate) {
       this.poll.expiryDate = new Date(this.poll.expiryDate); // Date nesnesi olarak tut
     }
@@ -82,7 +61,7 @@ export class PollCreateComponent implements OnInit {
     this.pollService.createPoll(this.poll).subscribe({
       next: (response) => {
         console.log('Anket başarıyla oluşturuldu:', response);
-        alert('Anket başarıyla oluşturuldu!');
+        this.router.navigate(['/poll-list']);
       },
       error: (err) => {
         console.error('Anket oluşturulurken hata oluştu:', err);
