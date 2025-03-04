@@ -88,7 +88,7 @@ export interface OptionDetailDto {
 export interface AnswerDto {
   questionId: number;
   textAnswer?: string;
-  selectedOptionIds?: { [key: number]: null };
+  selectedOptionIds?: { [key: number]: number | null };
 }
 
 export enum QuestionType {

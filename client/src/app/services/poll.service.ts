@@ -41,18 +41,51 @@ export class PollService {
     });
   }
 
-  // Anket detaylarını getirme
-  getPollById(id: number): Observable<PollDetailDto> {
-    return this.http.get<PollDetailDto>(`${this.apiUrl}poll/${id}`);
+  // // Anket detaylarını getirme
+  // getPollById(id: number): Observable<PollDetailDto> {
+  //   return this.http.get<PollDetailDto>(`${this.apiUrl}poll/${id}`);
+  // }
+
+  // Get poll by ID
+  getPollById(pollId: number): Observable<PollDetailDto> {
+    return this.http.get<PollDetailDto>(`${this.apiUrl}poll/${pollId}`, {
+      headers: this.getHeaders(),
+    });
   }
 
-  // Anket yanıtı gönderme
+  // // Anket yanıtı gönderme
+  // submitPollResponse(
+  //   pollId: number,
+  //   responseDto: PollResponseDto
+  // ): Observable<any> {
+  //   return this.http.post(`${this.apiUrl}poll/submit/${pollId}`, responseDto, {
+  //     headers: this.getHeaders(),
+  //   });
+  // }
+
   submitPollResponse(
     pollId: number,
     responseDto: PollResponseDto
   ): Observable<any> {
     return this.http.post(`${this.apiUrl}poll/submit/${pollId}`, responseDto, {
       headers: this.getHeaders(),
+      withCredentials: true, // Bu satırı ekleyin
+    });
+  }
+
+  // Check if user has already submitted response for this poll
+  checkPollSubmissionStatus(pollId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}poll/status/${pollId}`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  // JWT token ile header oluşturma
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token'); // Token'ı localStorage'dan al
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
   }
 
@@ -65,15 +98,6 @@ export class PollService {
   getMyPolls(): Observable<PollListDto[]> {
     return this.http.get<PollListDto[]>(`${this.apiUrl}poll/my-polls`, {
       headers: this.getHeaders(),
-    });
-  }
-
-  // JWT token ile header oluşturma
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token'); // Token'ı localStorage'dan al
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
     });
   }
 }
