@@ -6,7 +6,7 @@ public class Answer
 {
     public int Id { get; set; }
     public int ResponseId { get; set; }
-    public int QuestionId { get; set; }
+    public int? QuestionId { get; set; }
 
     // Navigation properties
     public Response? Response { get; set; }

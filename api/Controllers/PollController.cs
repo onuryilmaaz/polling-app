@@ -4,11 +4,7 @@ using api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -64,8 +60,14 @@ public class PollController : ControllerBase
                         Options = new List<Option>()
                     };
 
-                    // Soru seçeneklerini ekle (eğer varsa)
-                    if (questionDto.Options != null && questionDto.Options.Any())
+                    // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
+                    if (question.Type == QuestionType.YesNo)
+                    {
+                        question.Options.Add(new Option { Text = "Evet" });
+                        question.Options.Add(new Option { Text = "Hayır" });
+                    }
+                    // Kullanıcının belirttiği seçenekleri ekle
+                    else if (questionDto.Options != null && questionDto.Options.Any())
                     {
                         foreach (var optionDto in questionDto.Options)
                         {
@@ -164,8 +166,14 @@ public class PollController : ControllerBase
                         Options = new List<Option>()
                     };
 
-                    // Soru seçeneklerini ekle (eğer varsa)
-                    if (questionDto.Options != null && questionDto.Options.Any())
+                    // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
+                    if (question.Type == QuestionType.YesNo)
+                    {
+                        question.Options.Add(new Option { Text = "Evet" });
+                        question.Options.Add(new Option { Text = "Hayır" });
+                    }
+                    // Kullanıcının belirttiği seçenekleri ekle
+                    else if (questionDto.Options != null && questionDto.Options.Any())
                     {
                         foreach (var optionDto in questionDto.Options)
                         {
@@ -191,34 +199,60 @@ public class PollController : ControllerBase
         }
     }
 
-    // Admin'in anket silmesi için metot
+
     [HttpDelete("delete/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePoll(int id)
     {
         try
         {
-            var poll = await _context.Polls.FindAsync(id);
+            var poll = await _context.Polls
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Include(p => p.Responses)
+                    .ThenInclude(r => r.Answers)
+                        .ThenInclude(a => a.SelectedOptions)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (poll == null)
             {
                 return NotFound("Anket bulunamadı.");
             }
 
-            // Giriş yapmış kullanıcının ID'sini al
+            // Kullanıcı kimliğini al
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
                 return Unauthorized("Kullanıcı kimliği bulunamadı.");
             }
 
-            Guid userId = Guid.Parse(userIdClaim.Value);
+            if (!Guid.TryParse(userIdClaim.Value, out Guid userId))
+            {
+                return Unauthorized("Geçersiz kullanıcı kimliği.");
+            }
 
             // Anketi oluşturan kişi mi kontrol et
-            if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid creatorId) && creatorId != userId)
             {
                 return Forbid("Bu anketi silme yetkiniz yok.");
             }
+
+            // İlişkili verileri tek tek sil
+            foreach (var question in poll.Questions)
+            {
+                _context.Options.RemoveRange(question.Options);
+            }
+            _context.Questions.RemoveRange(poll.Questions);
+
+            foreach (var response in poll.Responses)
+            {
+                foreach (var answer in response.Answers)
+                {
+                    _context.SelectedOptions.RemoveRange(answer.SelectedOptions);
+                }
+                _context.Answers.RemoveRange(response.Answers);
+            }
+            _context.Responses.RemoveRange(poll.Responses);
 
             _context.Polls.Remove(poll);
             await _context.SaveChangesAsync();
@@ -227,9 +261,11 @@ public class PollController : ControllerBase
         }
         catch (Exception ex)
         {
+            // Hata detaylarını loglayabilirsiniz
             return StatusCode(500, $"Anket silinirken bir hata oluştu: {ex.Message}");
         }
     }
+
 
     // Anket detaylarını getiren metot
     [HttpGet("{id}")]
@@ -303,12 +339,12 @@ public class PollController : ControllerBase
             }
 
             Guid? userId = null;
-            string? sessionId = null;
+            string sessionId = null;
 
             if (User.Identity == null || !User.Identity.IsAuthenticated)
             {
                 // Anonim kullanıcı işlemi
-                Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
+                Request.Cookies.TryGetValue("PollSessionId", out string cookieSessionId);
                 sessionId = cookieSessionId;
 
                 if (string.IsNullOrEmpty(sessionId))
@@ -336,7 +372,7 @@ public class PollController : ControllerBase
                 else
                 {
                     // Kullanıcı kimliği yoksa oturum kimliğini kullan
-                    Request.Cookies.TryGetValue("PollSessionId", out string? cookieSessionId);
+                    Request.Cookies.TryGetValue("PollSessionId", out string cookieSessionId);
                     sessionId = cookieSessionId;
 
                     if (string.IsNullOrEmpty(sessionId))
@@ -463,7 +499,7 @@ public class PollController : ControllerBase
 
     // Admin için oluşturduğu tüm anketleri listeleyen metot
     [HttpGet("my-polls")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetMyPolls()
     {
         try
@@ -474,7 +510,7 @@ public class PollController : ControllerBase
                 return Unauthorized("Kullanıcı kimliği bulunamadı.");
             }
 
-            int userId = int.Parse(userIdClaim.Value);
+            Guid userId = Guid.Parse(userIdClaim.Value);
 
             var myPolls = await _context.Polls
                 .Where(s => s.CreatedByUserId == userId.ToString())

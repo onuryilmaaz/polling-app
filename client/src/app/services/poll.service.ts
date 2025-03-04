@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 })
 export class PollService {
   apiUrl: string = environment.apiUrl;
-  private tokenKey = 'token';
+  //private tokenKey = 'token';
 
   constructor(private http: HttpClient) {}
 
@@ -41,27 +41,12 @@ export class PollService {
     });
   }
 
-  // // Anket detaylarını getirme
-  // getPollById(id: number): Observable<PollDetailDto> {
-  //   return this.http.get<PollDetailDto>(`${this.apiUrl}poll/${id}`);
-  // }
-
   // Get poll by ID
   getPollById(pollId: number): Observable<PollDetailDto> {
     return this.http.get<PollDetailDto>(`${this.apiUrl}poll/${pollId}`, {
       headers: this.getHeaders(),
     });
   }
-
-  // // Anket yanıtı gönderme
-  // submitPollResponse(
-  //   pollId: number,
-  //   responseDto: PollResponseDto
-  // ): Observable<any> {
-  //   return this.http.post(`${this.apiUrl}poll/submit/${pollId}`, responseDto, {
-  //     headers: this.getHeaders(),
-  //   });
-  // }
 
   submitPollResponse(
     pollId: number,
@@ -75,7 +60,7 @@ export class PollService {
 
   // Check if user has already submitted response for this poll
   checkPollSubmissionStatus(pollId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}poll/status/${pollId}`, {
+    return this.http.get(`${this.apiUrl}poll/${pollId}`, {
       headers: this.getHeaders(),
     });
   }

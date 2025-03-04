@@ -1,15 +1,33 @@
 import { Component, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
 import { Router } from '@angular/router';
-
 import { PollCreateDto, QuestionType } from '../../models/poll.models';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-poll-create',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatDatepickerModule,
+    MatIconModule,
+    MatSelectModule,
+    MatNativeDateModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatButtonModule,
+  ],
   templateUrl: './poll-create.component.html',
   styleUrls: ['./poll-create.component.css'],
 })
@@ -22,7 +40,6 @@ export class PollCreateComponent implements OnInit {
     questions: [],
   };
 
-  //constructor(private pollService: PollService) {}
   constructor(private pollService: PollService, private router: Router) {}
 
   ngOnInit(): void {}
@@ -45,6 +62,24 @@ export class PollCreateComponent implements OnInit {
       text: '',
       orderIndex: this.poll.questions[questionIndex].options.length,
     });
+  }
+
+  // Soru silme metodu
+  removeQuestion(index: number): void {
+    // İlgili indeksteki soruyu kaldır
+    this.poll.questions.splice(index, 1);
+    // Kalan soruların orderIndex değerlerini güncelle
+    this.poll.questions.forEach((q, i) => (q.orderIndex = i));
+  }
+
+  // Seçenek silme metodu
+  removeOption(questionIndex: number, optionIndex: number): void {
+    // İlgili sorunun options dizisinden, belirli index'teki seçeneği kaldır
+    this.poll.questions[questionIndex].options?.splice(optionIndex, 1);
+    // Kalan seçeneklerin orderIndex değerlerini güncelle
+    this.poll.questions[questionIndex].options?.forEach(
+      (option, i) => (option.orderIndex = i)
+    );
   }
 
   onSubmit(): void {

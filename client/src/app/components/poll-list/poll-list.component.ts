@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
 import { PollListDto } from '../../models/poll.models';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({

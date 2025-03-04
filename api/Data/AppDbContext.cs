@@ -23,7 +23,6 @@ public class AppDbContext : IdentityDbContext<User>
     {
         base.OnModelCreating(builder);
 
-        // İlişkileri yapılandırma
         builder.Entity<Poll>()
             .HasOne(s => s.CreatedByUser)
             .WithMany()
@@ -47,13 +46,13 @@ public class AppDbContext : IdentityDbContext<User>
             .HasOne(r => r.Poll)
             .WithMany(s => s.Responses)
             .HasForeignKey(r => r.PollId)
-            .OnDelete(DeleteBehavior.Restrict); // NoAction yerine Restrict daha iyi
+            .OnDelete(DeleteBehavior.ClientSetNull); // Restrict yerine Cascade yapın
 
         builder.Entity<Response>()
             .HasOne(r => r.User)
             .WithMany()
             .HasForeignKey(r => r.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Answer>()
             .HasOne(a => a.Response)
@@ -79,4 +78,5 @@ public class AppDbContext : IdentityDbContext<User>
             .HasForeignKey(so => so.OptionId)
             .OnDelete(DeleteBehavior.Restrict);
     }
+
 }
