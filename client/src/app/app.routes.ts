@@ -28,14 +28,12 @@ export const routes: Routes = [
     component: PollDetailComponent,
   },
   {
-    path: 'polls',
-    component: AdminPollListComponent,
-    canActivate: [roleGuard],
-    data: { roles: ['Admin'] },
-  },
-  {
     path: 'poll-list',
     component: PollListComponent,
+  },
+  {
+    path: 'polls',
+    component: AdminPollListComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] },
   },
