@@ -35,7 +35,7 @@ export class PollService {
   }
 
   // Anket silme
-  deletePoll(id: number): Observable<any> {
+  tooglePoll(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}poll/toogle/${id}`, {
       headers: this.getHeaders(),
     });

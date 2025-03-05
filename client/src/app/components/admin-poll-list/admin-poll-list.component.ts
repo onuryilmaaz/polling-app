@@ -107,7 +107,7 @@ export class AdminPollListComponent implements OnInit {
 
   pasifPoll(id: number): void {
     if (this.snackBar.open('Bu anketi silmek istediğinizden emin misiniz?')) {
-      this.pollService.deletePoll(id).subscribe({
+      this.pollService.tooglePoll(id).subscribe({
         next: () => {
           // Silme işlemi başarılıysa aktif anketleri yeniden yükle
           this.loadActivePolls();
@@ -140,7 +140,7 @@ export class AdminPollListComponent implements OnInit {
       : 'Bu anketi aktifleştirmek istediğinizden emin misiniz?';
 
     if (confirm(confirmMessage)) {
-      this.pollService.deletePoll(id).subscribe({
+      this.pollService.tooglePoll(id).subscribe({
         next: () => {
           // Aktif anketleri yeniden yükle
           this.loadActivePolls();

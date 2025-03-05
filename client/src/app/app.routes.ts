@@ -8,6 +8,7 @@ import { PollListComponent } from './components/poll-list/poll-list.component';
 import { PollCreateComponent } from './components/poll-create/poll-create.component';
 import { PollDetailComponent } from './components/poll-detail/poll-detail.component';
 import { AdminPollListComponent } from './components/admin-poll-list/admin-poll-list.component';
+import { PollEditComponent } from './components/poll-edit/poll-edit.component';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,16 @@ export const routes: Routes = [
     component: RegisterComponent,
   },
   {
+    path: 'poll/:id',
+    component: PollDetailComponent,
+  },
+  {
+    path: 'polls',
+    component: AdminPollListComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] },
+  },
+  {
     path: 'poll-list',
     component: PollListComponent,
     canActivate: [roleGuard],
@@ -35,18 +46,14 @@ export const routes: Routes = [
     data: { roles: ['Admin'] },
   },
   {
-    path: 'poll/:id',
-    component: PollDetailComponent,
-  },
-  {
-    path: 'users',
-    component: UsersComponent,
+    path: 'poll-edit/:id',
+    component: PollEditComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] },
   },
   {
-    path: 'polls',
-    component: AdminPollListComponent,
+    path: 'users',
+    component: UsersComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] },
   },

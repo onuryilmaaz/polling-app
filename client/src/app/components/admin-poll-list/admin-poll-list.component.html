@@ -50,7 +50,7 @@
 
       <div class="mt-3 sm:mt-0 flex space-x-2">
         <a
-          [routerLink]="['/poll/edit', poll.id]"
+          [routerLink]="['/poll-edit', poll.id]"
           [ngClass]="{
             'pointer-events-none opacity-50': isPollExpired(poll),
             'bg-purple-500 hover:bg-purple-700': !isPollExpired(poll)
