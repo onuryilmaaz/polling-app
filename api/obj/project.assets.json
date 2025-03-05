@@ -4367,11 +4367,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/onur/Documents/Project/polling-app/api/api.csproj",
+      "projectUniqueName": "/Users/onur/Desktop/polling-app/api/api.csproj",
       "projectName": "api",
-      "projectPath": "/Users/onur/Documents/Project/polling-app/api/api.csproj",
+      "projectPath": "/Users/onur/Desktop/polling-app/api/api.csproj",
       "packagesPath": "/Users/onur/.nuget/packages/",
-      "outputPath": "/Users/onur/Documents/Project/polling-app/api/obj/",
+      "outputPath": "/Users/onur/Desktop/polling-app/api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/onur/.nuget/NuGet/NuGet.Config"

@@ -243,12 +243,44 @@ export class PollDetailComponent implements OnInit {
           }
           break;
 
+        // case QuestionType.YesNo:
+        //   const yesNoAnswer = this.selectedOptions[question.id];
+        //   if (yesNoAnswer !== undefined) {
+        //     const numericValue = yesNoAnswer === true ? question.id : 0;
+        //     if (answer.selectedOptionIds != undefined)
+        //       answer.selectedOptionIds[numericValue] = null;
+        //   }
+        //   break;
+
         case QuestionType.YesNo:
-          const yesNoAnswer = this.selectedOptions[question.id];
-          if (yesNoAnswer !== undefined) {
-            const numericValue = yesNoAnswer === true ? question.id : 0;
-            if (answer.selectedOptionIds != undefined)
-              answer.selectedOptionIds[numericValue] = null;
+          // Öncelikle question.options'un tanımlı olup olmadığını kontrol ediyoruz.
+          if (!question.options) {
+            console.error('Soru seçenekleri tanımlı değil.');
+            break;
+          }
+
+          // Evet ve Hayır seçeneklerini buluyoruz.
+          const yesOption = question.options.find((o) => o.text === 'Evet');
+          const noOption = question.options.find((o) => o.text === 'Hayır');
+
+          // Seçeneklerin bulunup bulunmadığını kontrol ediyoruz.
+          if (!yesOption || !noOption) {
+            console.error('Evet veya Hayır seçeneği bulunamadı.');
+            break;
+          }
+
+          // Seçilen değerin tipini kontrol ediyoruz.
+          const selectedValue = this.selectedOptions[question.id];
+          if (typeof selectedValue !== 'boolean') {
+            console.error('Seçilen değer boolean değil.');
+            break;
+          }
+          const yesNoAnswer: boolean = selectedValue;
+
+          // Seçilen option id'sini belirliyoruz.
+          const selectedOptionId = yesNoAnswer ? yesOption.id : noOption.id;
+          if (answer.selectedOptionIds !== undefined) {
+            answer.selectedOptionIds[selectedOptionId] = null;
           }
           break;
 

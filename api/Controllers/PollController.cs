@@ -56,15 +56,29 @@ public class PollController : ControllerBase
                         Type = questionDto.Type,
                         OrderIndex = questionDto.OrderIndex,
                         IsRequired = questionDto.IsRequired,
-                        MaxSelections = questionDto.MaxSelections,
+                        MaxSelections = questionDto.Type == QuestionType.YesNo
+                                ? 1
+                                : questionDto.MaxSelections ?? 0,
                         Options = new List<Option>()
                     };
 
                     // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
                     if (question.Type == QuestionType.YesNo)
                     {
-                        question.Options.Add(new Option { Text = "Evet" });
-                        question.Options.Add(new Option { Text = "Hayır" });
+                        // Otomatik seçenekleri düzgün order index ile ekle
+                        question.Options.Add(new Option
+                        {
+                            Text = "Evet",
+                            OrderIndex = 1 // ← Sıralama için önemli
+                        });
+                        question.Options.Add(new Option
+                        {
+                            Text = "Hayır",
+                            OrderIndex = 2
+                        });
+
+                        // YesNo sorularında kullanıcının seçenek eklemesini engelle
+                        questionDto.Options = null; // ← Frontend'den gelse bile ignore et
                     }
                     // Kullanıcının belirttiği seçenekleri ekle
                     else if (questionDto.Options != null && questionDto.Options.Any())
@@ -86,7 +100,17 @@ public class PollController : ControllerBase
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetPollById), new { id = poll.Id }, new { id = poll.Id, message = "Anket başarıyla oluşturuldu." });
+            return CreatedAtAction(nameof(GetPollById), new { id = poll.Id },
+            new
+            {
+                id = poll.Id,
+                questions = poll.Questions.Select(q => new
+                {
+                    q.Id,
+                    options = q.Options.Select(o => new { o.Id, o.Text }) // ← Seçenek ID'leri
+                }),
+                message = "Anket başarıyla oluşturuldu."
+            });
         }
         catch (Exception ex)
         {
@@ -162,7 +186,7 @@ public class PollController : ControllerBase
                         Type = questionDto.Type,
                         OrderIndex = questionDto.OrderIndex,
                         IsRequired = questionDto.IsRequired,
-                        MaxSelections = questionDto.MaxSelections,
+                        MaxSelections = questionDto.MaxSelections ?? 0,
                         Options = new List<Option>()
                     };
 
@@ -200,18 +224,13 @@ public class PollController : ControllerBase
     }
 
 
-    [HttpDelete("delete/{id}")]
+    [HttpDelete("toogle/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePoll(int id)
     {
         try
         {
             var poll = await _context.Polls
-                .Include(p => p.Questions)
-                    .ThenInclude(q => q.Options)
-                .Include(p => p.Responses)
-                    .ThenInclude(r => r.Answers)
-                        .ThenInclude(a => a.SelectedOptions)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (poll == null)
@@ -234,35 +253,20 @@ public class PollController : ControllerBase
             // Anketi oluşturan kişi mi kontrol et
             if (Guid.TryParse(poll.CreatedByUserId, out Guid creatorId) && creatorId != userId)
             {
-                return Forbid("Bu anketi silme yetkiniz yok.");
+                return Forbid("Bu anketi pasifleştirmeye yetkiniz yok.");
             }
 
-            // İlişkili verileri tek tek sil
-            foreach (var question in poll.Questions)
-            {
-                _context.Options.RemoveRange(question.Options);
-            }
-            _context.Questions.RemoveRange(poll.Questions);
+            // Anketi pasife çek
+            poll.IsActive = !poll.IsActive;
 
-            foreach (var response in poll.Responses)
-            {
-                foreach (var answer in response.Answers)
-                {
-                    _context.SelectedOptions.RemoveRange(answer.SelectedOptions);
-                }
-                _context.Answers.RemoveRange(response.Answers);
-            }
-            _context.Responses.RemoveRange(poll.Responses);
-
-            _context.Polls.Remove(poll);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Anket başarıyla silindi." });
+            return Ok(new { message = "Anket başarıyla pasifleştirildi." });
         }
         catch (Exception ex)
         {
             // Hata detaylarını loglayabilirsiniz
-            return StatusCode(500, $"Anket silinirken bir hata oluştu: {ex.Message}");
+            return StatusCode(500, $"Anket pasifleştirilirken bir hata oluştu: {ex.Message}");
         }
     }
 
@@ -532,6 +536,39 @@ public class PollController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Anketler listelenirken bir hata oluştu: {ex.Message}");
+        }
+    }
+
+    [HttpGet("check-expiration")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CheckPollExpiration()
+    {
+        try
+        {
+            var currentTime = DateTime.UtcNow;
+
+            // Süresi dolmuş ve aktif olan anketleri bul
+            var expiredPolls = await _context.Polls
+                .Where(p => p.IsActive && p.ExpiryDate < currentTime)
+                .ToListAsync();
+
+            // Her bir süresi dolmuş anketi pasifleştir
+            foreach (var poll in expiredPolls)
+            {
+                poll.IsActive = false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"{expiredPolls.Count} adet anketin süresi doldu ve pasifleştirildi.",
+                expiredPollCount = expiredPolls.Count
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket süresi kontrolünde hata oluştu: {ex.Message}");
         }
     }
 }

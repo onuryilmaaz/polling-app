@@ -36,7 +36,7 @@ export class PollService {
 
   // Anket silme
   deletePoll(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}poll/delete/${id}`, {
+    return this.http.delete(`${this.apiUrl}poll/toogle/${id}`, {
       headers: this.getHeaders(),
     });
   }
@@ -84,5 +84,14 @@ export class PollService {
     return this.http.get<PollListDto[]>(`${this.apiUrl}poll/my-polls`, {
       headers: this.getHeaders(),
     });
+  }
+
+  checkPollExpirations(): Observable<{
+    message: string;
+    expiredPollCount: number;
+  }> {
+    return this.http.get<{ message: string; expiredPollCount: number }>(
+      `${this.apiUrl}polls/check-expiration`
+    );
   }
 }

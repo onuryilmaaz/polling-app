@@ -22,10 +22,80 @@ export class AdminPollListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadActivePolls();
+    this.checkPollExpirations();
+
+    // Her 1 saatte bir kontrol et
+    setInterval(() => {
+      this.checkPollExpirations();
+    }, 60 * 60 * 1000);
+  }
+
+  isPollExpired(poll: any): boolean {
+    if (!poll.expiryDate) return false;
+
+    const expiryDate =
+      poll.expiryDate instanceof Date
+        ? poll.expiryDate
+        : new Date(poll.expiryDate);
+
+    return expiryDate < new Date();
+  }
+
+  getStatusLabel(poll: any): string {
+    if (this.isPollExpired(poll)) return 'Süresi Doldu';
+    return poll.isActive ? 'Aktif' : 'Pasif';
+  }
+
+  getToggleButtonLabel(poll: any): string {
+    if (this.isPollExpired(poll)) return 'Süresi Doldu';
+    return poll.isActive ? 'Anketi Pasifleştir' : 'Anketi Aktifleştir';
+  }
+
+  formatExpiryDate(expiryDate: string | Date | undefined): string {
+    if (!expiryDate) return 'Süre belirtilmemiş';
+
+    // Convert to Date if it's a string
+    const date = expiryDate instanceof Date ? expiryDate : new Date(expiryDate);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return 'Geçersiz tarih';
+
+    return date.toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // Arka planda düzenli olarak süresi dolan anketleri kontrol etmek için
+  checkPollExpirations() {
+    this.pollService.checkPollExpirations().subscribe({
+      next: (result) => {
+        if (result?.expiredPollCount > 0) {
+          this.snackBar.open(
+            `${result.expiredPollCount} adet anketin süresi doldu.`,
+            'Kapat',
+            {
+              duration: 3000,
+              panelClass: ['warning-snackbar'],
+            }
+          );
+
+          // Anketleri yeniden yükle
+          this.loadActivePolls();
+        }
+      },
+      error: (err) => {
+        // Sessizce hatayı yönet, konsola yazmayın
+        // Gerekirse daha sonra hata izleme mekanizması ekleyebilirsiniz
+      },
+    });
   }
 
   loadActivePolls(): void {
-    this.pollService.getActivePolls().subscribe({
+    this.pollService.getMyPolls().subscribe({
       next: (polls) => {
         this.activePolls = polls;
       },
@@ -35,49 +105,66 @@ export class AdminPollListComponent implements OnInit {
     });
   }
 
-  // // Anket silme işlemi için MatSnackBar ile onay gösterme
-  // deletePoll(id: number): void {
-  //   this.snackBar
-  //     .open('Bu anketi silmek istediğinizden emin misiniz?', 'Evet', {
-  //       duration: 5000,
-  //       horizontalPosition: 'center',
-  //       verticalPosition: 'bottom',
-  //     })
-  //     .afterDismissed()
-  //     .subscribe((result) => {
-  //       if (result.dismissedByAction) {
-  //         this.pollService.deletePoll(id).subscribe({
-  //           next: () => {
-  //             this.loadActivePolls(); // Silme işlemi başarılı olduktan sonra listeyi güncelle
-  //             this.snackBar.open('Anket başarıyla silindi.', 'Kapat', {
-  //               duration: 3000,
-  //               horizontalPosition: 'center',
-  //               verticalPosition: 'bottom',
-  //             });
-  //           },
-  //           error: (err) => {
-  //             console.error('Anket silinirken hata oluştu:', err);
-  //             this.snackBar.open('Anket silinirken hata oluştu.', 'Kapat', {
-  //               duration: 3000,
-  //               horizontalPosition: 'center',
-  //               verticalPosition: 'bottom',
-  //             });
-  //           },
-  //         });
-  //       }
-  //     });
-  // }
-
-  // Anket silme işlemi
-  deletePoll(id: number): void {
-    if (confirm('Bu anketi silmek istediğinizden emin misiniz?')) {
+  pasifPoll(id: number): void {
+    if (this.snackBar.open('Bu anketi silmek istediğinizden emin misiniz?')) {
       this.pollService.deletePoll(id).subscribe({
         next: () => {
           // Silme işlemi başarılıysa aktif anketleri yeniden yükle
           this.loadActivePolls();
+
+          // Başarılı silme mesajını göster
+          this.snackBar.open('Anket başarıyla pasifleştirildi', 'Kapat', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+          });
         },
         error: (err) => {
-          console.error('Anket silinirken hata oluştu:', err);
+          // Hata durumunda kullanıcıya bildirim göster
+          this.snackBar.open(
+            'Anket silinirken hata oluştu: ' + err.message,
+            'Kapat',
+            {
+              duration: 5000,
+              panelClass: ['error-snackbar'],
+            }
+          );
+        },
+      });
+    }
+  }
+
+  togglePollStatus(id: number, currentStatus: boolean): void {
+    // Konfirmasyon mesajını dinamik olarak ayarla
+    const confirmMessage = currentStatus
+      ? 'Bu anketi pasifleştirmek istediğinizden emin misiniz?'
+      : 'Bu anketi aktifleştirmek istediğinizden emin misiniz?';
+
+    if (confirm(confirmMessage)) {
+      this.pollService.deletePoll(id).subscribe({
+        next: () => {
+          // Aktif anketleri yeniden yükle
+          this.loadActivePolls();
+
+          // Başarılı mesajı göster
+          const successMessage = currentStatus
+            ? 'Anket başarıyla pasifleştirildi'
+            : 'Anket başarıyla aktifleştirildi';
+
+          this.snackBar.open(successMessage, 'Kapat', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+          });
+        },
+        error: (err) => {
+          // Hata durumunda kullanıcıya bildirim göster
+          this.snackBar.open(
+            'İşlem sırasında hata oluştu: ' + err.message,
+            'Kapat',
+            {
+              duration: 5000,
+              panelClass: ['error-snackbar'],
+            }
+          );
         },
       });
     }
