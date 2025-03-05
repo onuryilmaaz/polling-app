@@ -95,8 +95,15 @@ public class AppDbContext : IdentityDbContext<User>
             .HasForeignKey(q => q.PollId);
 
         builder.Entity<Question>()
+            .HasMany(q => q.Answers)
+            .WithOne(a => a.Question)
+            .HasForeignKey(a => a.QuestionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Question>()
             .HasMany(q => q.Options)
             .WithOne(o => o.Question)
+            .HasForeignKey(o => o.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Option>()

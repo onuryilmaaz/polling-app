@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250305102502_UpdatePoll")]
-    partial class UpdatePoll
+    [Migration("20250305122144_FixUpdateLogic")]
+    partial class FixUpdateLogic
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -169,6 +169,9 @@ namespace api.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("QuestionId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("ResponseId")
                         .HasColumnType("int");
 
@@ -178,6 +181,8 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("QuestionId");
+
+                    b.HasIndex("QuestionId1");
 
                     b.HasIndex("ResponseId");
 
@@ -459,6 +464,10 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("api.Models.Question", null)
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionId1");
+
                     b.HasOne("api.Models.Response", "Response")
                         .WithMany("Answers")
                         .HasForeignKey("ResponseId")
@@ -551,6 +560,8 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.Question", b =>
                 {
+                    b.Navigation("Answers");
+
                     b.Navigation("Options");
                 });
 

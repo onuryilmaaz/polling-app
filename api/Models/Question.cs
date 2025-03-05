@@ -16,7 +16,8 @@ public class Question
 
     // Navigation properties
     public Poll? Poll { get; set; }
-    public ICollection<Option>? Options { get; set; }
+    public List<Option>? Options { get; set; }
+    public List<Answer>? Answers { get; set; }
 }
 
 public enum QuestionType

@@ -118,108 +118,107 @@ public class PollController : ControllerBase
         }
     }
 
-    // // Admin'in anket düzenlemesi için metot
+
     // [HttpPut("update/{id}")]
     // [Authorize(Roles = "Admin")]
     // public async Task<IActionResult> UpdatePoll(int id, [FromBody] PollUpdateDto pollDto)
     // {
+    //     using var transaction = await _context.Database.BeginTransactionAsync();
     //     try
     //     {
     //         var poll = await _context.Polls
-    //             .Include(s => s.Questions!)
-    //             .ThenInclude(q => q.Options!)
+    //             .Include(s => s.Questions)
+    //             .ThenInclude(q => q.Options)
     //             .FirstOrDefaultAsync(s => s.Id == id);
 
-    //         if (poll == null)
-    //         {
-    //             return NotFound("Anket bulunamadı.");
-    //         }
+    //         if (poll == null) return NotFound("Anket bulunamadı.");
 
-    //         // Giriş yapmış kullanıcının ID'sini al
     //         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-    //         if (userIdClaim == null)
+    //         if (userIdClaim == null) return Unauthorized();
+
+    //         if (!Guid.TryParse(poll.CreatedByUserId, out var createdBy) ||
+    //             createdBy != Guid.Parse(userIdClaim.Value))
     //         {
-    //             return Unauthorized("Kullanıcı kimliği bulunamadı.");
+    //             return Forbid();
     //         }
 
-    //         Guid userId = Guid.Parse(userIdClaim.Value);
-
-    //         // Anketi oluşturan kişi mi kontrol et
-    //         if (Guid.TryParse(poll.CreatedByUserId, out Guid result) && result != userId)
-    //         {
-    //             return Forbid("Bu anketi düzenleme yetkiniz yok.");
-    //         }
-
-    //         // Anket bilgilerini güncelle
+    //         // Ana bilgileri güncelle
     //         poll.Title = pollDto.Title ?? string.Empty;
     //         poll.Description = pollDto.Description;
     //         poll.ExpiryDate = pollDto.ExpiryDate;
     //         poll.IsActive = pollDto.IsActive;
 
-    //         // Mevcut soruları ve seçenekleri temizle
-    //         if (poll.Questions != null)
-    //         {
-    //             var existingQuestions = poll.Questions.ToList();
-    //             foreach (var question in existingQuestions)
-    //             {
-    //                 if (question.Options != null)
-    //                 {
-    //                     var existingOptions = question.Options.ToList();
-    //                     foreach (var option in existingOptions)
-    //                     {
-    //                         _context.Options.Remove(option);
-    //                     }
-    //                 }
-    //                 _context.Questions.Remove(question);
-    //             }
-    //         }
+    //         // Mevcut soruları sil
+    //         _context.Questions.RemoveRange(poll.Questions);
 
     //         // Yeni soruları ekle
-    //         poll.Questions = new List<Question>();
-    //         if (pollDto.Questions != null)
+    //         foreach (var questionDto in pollDto.Questions)
     //         {
-    //             foreach (var questionDto in pollDto.Questions)
+    //             var question = new Question
     //             {
-    //                 var question = new Question
-    //                 {
-    //                     Text = questionDto.Text ?? string.Empty,
-    //                     Type = questionDto.Type,
-    //                     OrderIndex = questionDto.OrderIndex,
-    //                     IsRequired = questionDto.IsRequired,
-    //                     MaxSelections = questionDto.MaxSelections ?? 0,
-    //                     Options = new List<Option>()
-    //                 };
+    //                 Text = questionDto.Text ?? string.Empty,
+    //                 Type = questionDto.Type,
+    //                 OrderIndex = questionDto.OrderIndex,
+    //                 IsRequired = questionDto.IsRequired,
+    //                 MaxSelections = questionDto.Type == QuestionType.MultipleChoice ||
+    //                               questionDto.Type == QuestionType.Ranking
+    //                               ? questionDto.MaxSelections
+    //                               : null,
+    //                 Options = new List<Option>()
+    //             };
 
-    //                 // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
-    //                 if (question.Type == QuestionType.YesNo)
-    //                 {
-    //                     question.Options.Add(new Option { Text = "Evet" });
-    //                     question.Options.Add(new Option { Text = "Hayır" });
-    //                 }
-    //                 // Kullanıcının belirttiği seçenekleri ekle
-    //                 else if (questionDto.Options != null && questionDto.Options.Any())
-    //                 {
-    //                     foreach (var optionDto in questionDto.Options)
-    //                     {
-    //                         question.Options.Add(new Option
-    //                         {
-    //                             Text = optionDto.Text ?? string.Empty,
-    //                             OrderIndex = optionDto.OrderIndex
-    //                         });
-    //                     }
-    //                 }
+    //             // // Yes/No için otomatik seçenek
+    //             // if (question.Type == QuestionType.YesNo)
+    //             // {
+    //             //     question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
+    //             //     question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
+    //             // }
 
-    //                 poll.Questions.Add(question);
+    //             // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
+    //             if (question.Type == QuestionType.YesNo)
+    //             {
+    //                 // Otomatik seçenekleri düzgün order index ile ekle
+    //                 question.Options.Add(new Option
+    //                 {
+    //                     Text = "Evet",
+    //                     OrderIndex = 1 // ← Sıralama için önemli
+    //                 });
+    //                 question.Options.Add(new Option
+    //                 {
+    //                     Text = "Hayır",
+    //                     OrderIndex = 2
+    //                 });
+
+    //                 // YesNo sorularında kullanıcının seçenek eklemesini engelle
+    //                 questionDto.Options = null; // ← Frontend'den gelse bile ignore et
     //             }
-    //         }
 
+    //             // Diğer seçenekleri ekle
+    //             else if (questionDto.Options != null)
+    //             {
+    //                 foreach (var optionDto in questionDto.Options)
+    //                 {
+    //                     question.Options.Add(new Option
+    //                     {
+    //                         Text = optionDto.Text ?? string.Empty,
+    //                         OrderIndex = optionDto.OrderIndex
+    //                     });
+    //                 }
+    //             }
+
+    //             poll.Questions.Add(question);
+    //         }
+    //         _context.Polls.Add(poll);
     //         await _context.SaveChangesAsync();
 
+
     //         return Ok(new { message = "Anket başarıyla güncellendi." });
+
     //     }
     //     catch (Exception ex)
     //     {
-    //         return StatusCode(500, $"Anket güncellenirken bir hata oluştu: {ex.Message}");
+    //         await transaction.RollbackAsync();
+    //         return StatusCode(500, $"Detaylı hata: {ex.InnerException?.Message ?? ex.Message}");
     //     }
     // }
 
@@ -232,7 +231,9 @@ public class PollController : ControllerBase
         {
             var poll = await _context.Polls
                 .Include(s => s.Questions)
-                .ThenInclude(q => q.Options)
+                    .ThenInclude(q => q.Options)
+                .Include(s => s.Questions)
+                    .ThenInclude(q => q.Answers) // Answers ilişkisini ekledik
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (poll == null) return NotFound("Anket bulunamadı.");
@@ -252,8 +253,18 @@ public class PollController : ControllerBase
             poll.ExpiryDate = pollDto.ExpiryDate;
             poll.IsActive = pollDto.IsActive;
 
-            // Mevcut soruları sil
-            _context.Questions.RemoveRange(poll.Questions);
+            // Tüm ilişkili verileri sil
+            foreach (var question in poll.Questions.ToList())
+            {
+                // Önce cevapları sil
+                _context.Answers.RemoveRange(question.Answers);
+
+                // Sonra seçenekleri sil
+                _context.Options.RemoveRange(question.Options);
+
+                // En son soruyu sil
+                _context.Questions.Remove(question);
+            }
 
             // Yeni soruları ekle
             foreach (var questionDto in pollDto.Questions)
@@ -271,13 +282,12 @@ public class PollController : ControllerBase
                     Options = new List<Option>()
                 };
 
-                // Yes/No için otomatik seçenek
                 if (question.Type == QuestionType.YesNo)
                 {
                     question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
                     question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
+                    questionDto.Options = null; // Frontend'den gelse bile ignore et
                 }
-                // Diğer seçenekleri ekle
                 else if (questionDto.Options != null)
                 {
                     foreach (var optionDto in questionDto.Options)

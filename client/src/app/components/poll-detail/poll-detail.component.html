@@ -1,213 +1,217 @@
-<div class="max-w-4xl mx-auto mt-8 p-6 bg-white shadow-md rounded-lg">
-  <!-- Loading state -->
-  <div *ngIf="isLoading" class="text-center py-10">
-    <div
-      class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-    ></div>
-    <p class="mt-2 text-gray-600">Anket yükleniyor...</p>
-  </div>
-
-  <!-- Error state -->
-  <div
-    *ngIf="errorMessage && !isLoading"
-    class="p-4 bg-red-100 text-red-700 rounded-md mb-4"
-  >
-    {{ errorMessage }}
-  </div>
-
-  <!-- Already submitted state -->
-  <div
-    *ngIf="hasAlreadySubmitted && !isLoading"
-    class="p-4 bg-green-100 text-green-700 rounded-md mb-4"
-  >
-    <h3 class="text-lg font-medium">Bu anketi daha önce yanıtladınız</h3>
-    <p class="mt-2">
-      Aynı ankete birden fazla kez katılmak mümkün değildir. Teşekkür ederiz!
-    </p>
-  </div>
-
-  <!-- Login prompt for unauthenticated users (optional) -->
-  <div
-    *ngIf="!isAuthenticated && !isLoading && !hasAlreadySubmitted"
-    class="p-4 bg-yellow-100 text-yellow-800 rounded-md mb-4"
-  >
-    <p>
-      Giriş yapmadan da ankete katılabilirsiniz, ancak giriş yaparsanız
-      yanıtlarınız hesabınızla ilişkilendirilecektir.
-    </p>
-    <button
-      (click)="login()"
-      class="mt-2 bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-4 rounded-md"
-    >
-      Giriş Yap
-    </button>
-  </div>
-
-  <!-- Poll Content -->
-  <div *ngIf="poll && !isLoading && !hasAlreadySubmitted">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ poll.title }}</h2>
-    <p class="text-gray-600 mb-6">{{ poll.description }}</p>
-
-    <form (ngSubmit)="submitResponse()">
+<div
+  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white text-center py-16"
+>
+  <div class="max-w-4xl mx-auto mt-8 p-6 bg-white shadow-md rounded-lg">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="text-center py-10">
       <div
-        *ngFor="let question of poll.questions"
-        class="mb-8 p-4 bg-gray-50 rounded-lg"
-      >
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">
-          {{ question.text }}
-          <span *ngIf="question.isRequired" class="text-red-500">*</span>
-        </h3>
+        class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
+      ></div>
+      <p class="mt-2 text-gray-600">Anket yükleniyor...</p>
+    </div>
 
-        <!-- Single Choice (MultipleChoice) -->
-        <div
-          *ngIf="question.type === questionType.MultipleChoice"
-          class="space-y-2"
-        >
-          <div
-            *ngFor="let option of question.options"
-            class="flex items-center"
-          >
-            <input
-              type="radio"
-              [name]="'question' + question.id"
-              [id]="'option' + option.id"
-              [value]="option.id"
-              [(ngModel)]="selectedOptions[question.id]"
-              class="mr-2"
-            />
-            <label [for]="'option' + option.id" class="text-gray-700">
-              {{ option.text }}
-            </label>
-          </div>
-        </div>
+    <!-- Error state -->
+    <div
+      *ngIf="errorMessage && !isLoading"
+      class="p-4 bg-red-100 text-red-700 rounded-md mb-4"
+    >
+      {{ errorMessage }}
+    </div>
 
-        <!-- Text Input -->
-        <div *ngIf="question.type === questionType.Text" class="space-y-2">
-          <textarea
-            [name]="'question' + question.id"
-            [(ngModel)]="textAnswers[question.id]"
-            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="3"
-            placeholder="Cevabınızı buraya yazın..."
-          ></textarea>
-        </div>
-
-        <!-- Yes/No -->
-        <div *ngIf="question.type === questionType.YesNo" class="space-y-2">
-          <div class="flex items-center space-x-4">
-            <div class="flex items-center">
-              <input
-                type="radio"
-                [name]="'question' + question.id"
-                [id]="selectedOptions"
-                [value]="true"
-                [(ngModel)]="selectedOptions[question.id]"
-                class="mr-2"
-              />
-              <label
-                [for]="'option' + question.id + '_yes'"
-                class="text-gray-700"
-                >Evet</label
-              >
-            </div>
-            <div class="flex items-center">
-              <input
-                type="radio"
-                [name]="'question' + question.id"
-                [id]="'option' + question.id + '_no'"
-                [value]="false"
-                [(ngModel)]="selectedOptions[question.id]"
-                class="mr-2"
-              />
-              <label
-                [for]="'option' + question.id + '_no'"
-                class="text-gray-700"
-                >Hayır</label
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Multi Select (Multiple Options) -->
-        <div
-          *ngIf="question.type === questionType.MultiSelect"
-          class="space-y-2"
-        >
-          <div
-            *ngFor="let option of question.options"
-            class="flex items-center"
-          >
-            <input
-              type="checkbox"
-              [id]="'option' + option.id"
-              [name]="'option' + option.id"
-              [checked]="isOptionSelected(question.id, option.id)"
-              (change)="toggleMultiSelect(question.id, option.id)"
-              class="mr-2"
-            />
-            <label [for]="'option' + option.id" class="text-gray-700">
-              {{ option.text }}
-            </label>
-          </div>
-        </div>
-
-        <!-- Ranking -->
-        <div *ngIf="question.type === questionType.Ranking" class="space-y-4">
-          <p class="text-sm text-gray-500">Sıralama yapınız (1: En yüksek)</p>
-          <div
-            *ngFor="let option of question.options"
-            class="flex items-center space-x-2"
-          >
-            <select
-              [(ngModel)]="rankedOptions[question.id][option.id]"
-              [name]="'rank_' + question.id + '_' + option.id"
-              class="p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option [ngValue]="null">Seçiniz</option>
-              <option
-                *ngFor="
-                  let i of getNumberArray(
-                    question.options ? question.options.length : 0
-                  )
-                "
-                [ngValue]="i"
-              >
-                {{ i }}
-              </option>
-            </select>
-            <label class="text-gray-700">{{ option.text }}</label>
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
-        [disabled]="isSubmitting"
-      >
-        <span *ngIf="!isSubmitting">Ankete Katıl</span>
-        <span *ngIf="isSubmitting">
-          <span
-            class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"
-          ></span>
-          Gönderiliyor...
-        </span>
-      </button>
-    </form>
-  </div>
-
-  <!-- Already submitted view -->
-  <div *ngIf="poll && hasAlreadySubmitted && !isLoading">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ poll.title }}</h2>
-    <p class="text-gray-600 mb-6">{{ poll.description }}</p>
-
-    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-      <h3 class="text-lg font-medium text-blue-800 mb-2">
-        Ankete katıldığınız için teşekkür ederiz!
-      </h3>
-      <p class="text-blue-700">
-        Anket sonuçları tamamlandığında bilgilendirileceksiniz.
+    <!-- Already submitted state -->
+    <div
+      *ngIf="hasAlreadySubmitted && !isLoading"
+      class="p-4 bg-green-100 text-green-700 rounded-md mb-4"
+    >
+      <h3 class="text-lg font-medium">Bu anketi daha önce yanıtladınız</h3>
+      <p class="mt-2">
+        Aynı ankete birden fazla kez katılmak mümkün değildir. Teşekkür ederiz!
       </p>
+    </div>
+
+    <!-- Login prompt for unauthenticated users (optional) -->
+    <div
+      *ngIf="!isAuthenticated && !isLoading && !hasAlreadySubmitted"
+      class="p-4 bg-yellow-100 text-yellow-800 rounded-md mb-4"
+    >
+      <p>
+        Giriş yapmadan da ankete katılabilirsiniz, ancak giriş yaparsanız
+        yanıtlarınız hesabınızla ilişkilendirilecektir.
+      </p>
+      <button
+        (click)="login()"
+        class="mt-2 bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-4 rounded-md"
+      >
+        Giriş Yap
+      </button>
+    </div>
+
+    <!-- Poll Content -->
+    <div *ngIf="poll && !isLoading && !hasAlreadySubmitted">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ poll.title }}</h2>
+      <p class="text-gray-600 mb-6">{{ poll.description }}</p>
+
+      <form (ngSubmit)="submitResponse()">
+        <div
+          *ngFor="let question of poll.questions"
+          class="mb-8 p-4 bg-gray-50 rounded-lg"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            {{ question.text }}
+            <span *ngIf="question.isRequired" class="text-red-500">*</span>
+          </h3>
+
+          <!-- Single Choice (MultipleChoice) -->
+          <div
+            *ngIf="question.type === questionType.MultipleChoice"
+            class="space-y-2"
+          >
+            <div
+              *ngFor="let option of question.options"
+              class="flex items-center"
+            >
+              <input
+                type="radio"
+                [name]="'question' + question.id"
+                [id]="'option' + option.id"
+                [value]="option.id"
+                [(ngModel)]="selectedOptions[question.id]"
+                class="mr-2"
+              />
+              <label [for]="'option' + option.id" class="text-gray-700">
+                {{ option.text }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Text Input -->
+          <div *ngIf="question.type === questionType.Text" class="space-y-2">
+            <textarea
+              [name]="'question' + question.id"
+              [(ngModel)]="textAnswers[question.id]"
+              class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="3"
+              placeholder="Cevabınızı buraya yazın..."
+            ></textarea>
+          </div>
+
+          <!-- Yes/No -->
+          <div *ngIf="question.type === questionType.YesNo" class="space-y-2">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center">
+                <input
+                  type="radio"
+                  [name]="'question' + question.id"
+                  [id]="selectedOptions"
+                  [value]="true"
+                  [(ngModel)]="selectedOptions[question.id]"
+                  class="mr-2"
+                />
+                <label
+                  [for]="'option' + question.id + '_yes'"
+                  class="text-gray-700"
+                  >Evet</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="radio"
+                  [name]="'question' + question.id"
+                  [id]="'option' + question.id + '_no'"
+                  [value]="false"
+                  [(ngModel)]="selectedOptions[question.id]"
+                  class="mr-2"
+                />
+                <label
+                  [for]="'option' + question.id + '_no'"
+                  class="text-gray-700"
+                  >Hayır</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi Select (Multiple Options) -->
+          <div
+            *ngIf="question.type === questionType.MultiSelect"
+            class="space-y-2"
+          >
+            <div
+              *ngFor="let option of question.options"
+              class="flex items-center"
+            >
+              <input
+                type="checkbox"
+                [id]="'option' + option.id"
+                [name]="'option' + option.id"
+                [checked]="isOptionSelected(question.id, option.id)"
+                (change)="toggleMultiSelect(question.id, option.id)"
+                class="mr-2"
+              />
+              <label [for]="'option' + option.id" class="text-gray-700">
+                {{ option.text }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Ranking -->
+          <div *ngIf="question.type === questionType.Ranking" class="space-y-4">
+            <p class="text-sm text-gray-500">Sıralama yapınız (1: En yüksek)</p>
+            <div
+              *ngFor="let option of question.options"
+              class="flex items-center space-x-2"
+            >
+              <select
+                [(ngModel)]="rankedOptions[question.id][option.id]"
+                [name]="'rank_' + question.id + '_' + option.id"
+                class="p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option [ngValue]="null">Seçiniz</option>
+                <option
+                  *ngFor="
+                    let i of getNumberArray(
+                      question.options ? question.options.length : 0
+                    )
+                  "
+                  [ngValue]="i"
+                >
+                  {{ i }}
+                </option>
+              </select>
+              <label class="text-gray-700">{{ option.text }}</label>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+          [disabled]="isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">Ankete Katıl</span>
+          <span *ngIf="isSubmitting">
+            <span
+              class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"
+            ></span>
+            Gönderiliyor...
+          </span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Already submitted view -->
+    <div *ngIf="poll && hasAlreadySubmitted && !isLoading">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ poll.title }}</h2>
+      <p class="text-gray-600 mb-6">{{ poll.description }}</p>
+
+      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h3 class="text-lg font-medium text-blue-800 mb-2">
+          Ankete katıldığınız için teşekkür ederiz!
+        </h3>
+        <p class="text-blue-700">
+          Anket sonuçları tamamlandığında bilgilendirileceksiniz.
+        </p>
+      </div>
     </div>
   </div>
 </div>
