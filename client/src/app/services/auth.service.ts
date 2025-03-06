@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { LoginRequest } from '../interfaces/login-request';
-import { map, Observable } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { jwtDecode } from 'jwt-decode';
 import { RegisterRequest } from '../interfaces/register-request';
@@ -82,4 +82,12 @@ export class AuthService {
     this.http.get<UserDetail[]>(`${this.apiUrl}account`);
 
   getToken = (): string | null => localStorage.getItem(this.tokenKey) || '';
+
+  toggleUserStatus(id: string, isActive: boolean): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}account/${id}/activate`,
+      isActive,
+      { responseType: 'text' } // Backend string dönüyorsa bu eklenmeli
+    );
+  }
 }

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using api.Dtos;
 using api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -99,6 +100,14 @@ namespace api.Controllers
                     Message = "User not found with this email"
                 });
             }
+            if (user.IsActive == false)
+            {
+                return Unauthorized(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Hesabınız Pasif Durumda"
+                });
+            }
             var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!result)
             {
@@ -144,16 +153,19 @@ namespace api.Controllers
         #endregion
 
         #region GetUsers
-
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDetailDto>>> GetUsers()
         {
             var users = await _userManager.Users
+                .OrderBy(u => u.CreatedDate)  // Kullanıcıları oluşturulma tarihine göre sıralıyoruz
                 .Select(u => new
                 {
                     u.Id,
                     u.Email,
-                    u.FullName
+                    u.FullName,
+                    u.CreatedDate, // CreatedDate alanını da alıyoruz
+                    u.IsActive
                 })
                 .ToListAsync(); // Önce User listesini çekiyoruz
 
@@ -169,10 +181,38 @@ namespace api.Controllers
                     Email = user.Email,
                     FullName = user.FullName,
                     Roles = roles.ToArray(),
+                    IsActive = user.IsActive
                 });
             }
 
             return Ok(userList);
+        }
+
+        #endregion
+
+        #region IsActive
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{userId}/activate")]
+        public async Task<ActionResult> SetUserActiveStatus(string userId, [FromBody] bool isActive)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Gelen isActive değerini direkt ata (tersini alma!)
+            user.IsActive = !isActive;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Failed to update user status");
+            }
+
+            return Ok(new { Success = true, Message = "Başarılı" });
         }
         #endregion
 
