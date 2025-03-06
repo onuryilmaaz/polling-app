@@ -11,6 +11,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import {
   FormControl,
   Validators,
@@ -33,6 +34,7 @@ import {
     MatCheckboxModule,
     MatButtonModule,
     ReactiveFormsModule,
+    MatCardModule,
   ],
   templateUrl: './poll-create.component.html',
   styleUrls: ['./poll-create.component.css'],

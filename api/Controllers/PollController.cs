@@ -63,24 +63,60 @@ public class PollController : ControllerBase
                         Options = new List<Option>()
                     };
 
-                    // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
+                    // // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
+                    // if (question.Type == QuestionType.YesNo)
+                    // {
+                    //     // Otomatik seçenekleri düzgün order index ile ekle
+                    //     question.Options.Add(new Option
+                    //     {
+                    //         Text = "Evet",
+                    //         OrderIndex = 1 // ← Sıralama için önemli
+                    //     });
+                    //     question.Options.Add(new Option
+                    //     {
+                    //         Text = "Hayır",
+                    //         OrderIndex = 2
+                    //     });
+
+                    //     // YesNo sorularında kullanıcının seçenek eklemesini engelle
+                    //     //questionDto.Options = null; // ← Frontend'den gelse bile ignore et
+                    // }
+
+                    // Eğer soru Yes/No tipi ise, seçenekleri ekle (kullanıcı özelleştirmesine izin vererek)
                     if (question.Type == QuestionType.YesNo)
                     {
-                        // Otomatik seçenekleri düzgün order index ile ekle
-                        question.Options.Add(new Option
-                        {
-                            Text = "Evet",
-                            OrderIndex = 1 // ← Sıralama için önemli
-                        });
-                        question.Options.Add(new Option
-                        {
-                            Text = "Hayır",
-                            OrderIndex = 2
-                        });
+                        // Frontend'den gelen seçenekleri kontrol et
+                        bool hasCustomOptions = question.Options != null && question.Options.Count >= 2;
 
-                        // YesNo sorularında kullanıcının seçenek eklemesini engelle
-                        questionDto.Options = null; // ← Frontend'den gelse bile ignore et
+                        // Eğer kullanıcı özel seçenek metinleri girmediyse, varsayılanları kullan
+                        if (!hasCustomOptions)
+                        {
+                            // Kullanıcı hiç seçenek girmemişse veya yetersiz seçenek girmişse
+                            question.Options = new List<Option>
+        {
+            new Option
+            {
+                Text = "Evet",
+                OrderIndex = 1
+            },
+            new Option
+            {
+                Text = "Hayır",
+                OrderIndex = 2
+            }
+        };
+                        }
+                        else
+                        {
+                            // Kullanıcının girdiği özel seçenekleri koru
+                            // Sadece OrderIndex'leri düzgün olduğundan emin ol
+                            for (int i = 0; i < question.Options.Count; i++)
+                            {
+                                question.Options[i].OrderIndex = i + 1;
+                            }
+                        }
                     }
+
                     // Kullanıcının belirttiği seçenekleri ekle
                     else if (questionDto.Options != null && questionDto.Options.Any())
                     {
