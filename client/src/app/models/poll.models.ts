@@ -101,10 +101,3 @@ export enum QuestionType {
   Ranking = 4, // Sıralama
 }
 
-// export enum QuestionType {
-//   SingleChoice = 0,
-//   Text = 2,
-//   YesNo = 4,
-//   MultipleChoice = 1,
-//   Ranking = 3,
-// }

@@ -1,33 +1,58 @@
-<div class="h-screen flex items-center justify-center">
+<div class="min-h-screen flex items-center justify-center px-4 bg-gray-100">
   <form
-    class="shadow-md rounded-lg p-5 bg-white w-1/3 max-w-md"
+    class="shadow-md rounded-lg p-6 bg-white w-full max-w-md"
     [formGroup]="form"
     (ngSubmit)="login()"
   >
-    <div class="py-4">
-      <h1 class="font-bold py2 text-black">Login</h1>
+    <div class="py-4 text-center">
+      <h1 class="font-bold text-xl text-black">Login</h1>
       <h6 class="text-slate-600 text-base">Login to your account</h6>
     </div>
+    <div class="">
+      <mat-form-field appearance="fill" class="w-full mb-4">
+        <mat-label>Email</mat-label>
+        <input matInput placeholder="Email" formControlName="email" />
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="form.get('email')?.hasError('required')">
+          Email <strong>zorunlu</strong>
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <div class="mb-6">
+      <mat-form-field appearance="fill" class="w-full mb-4">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [type]="hide ? 'password' : 'text'"
+          placeholder="Password"
+        />
+        <mat-icon matPrefix>lock</mat-icon>
+        <mat-icon (click)="hide = !hide" matSuffix>
+          {{ hide ? "visibility_off" : "visibility" }}
+        </mat-icon>
+        <mat-error
+          *ngIf="form.get('password')?.hasError('required')"
+          class="text-red-500"
+        >
+          Şifre <strong>zorunlu</strong>
+        </mat-error>
+        <mat-error
+          *ngIf="form.get('password')?.hasError('minlength')"
+          class="text-red-500"
+        >
+          Şifre en az <strong>8 karakter</strong> olmalıdır
+        </mat-error>
+        <mat-error
+          *ngIf="form.get('password')?.hasError('pattern')"
+          class="text-red-500"
+        >
+          Şifre en az bir <strong>büyük harf, küçük harf, rakam</strong> ve
+          <strong>özel karakter</strong> içermelidir
+        </mat-error>
+      </mat-form-field>
+    </div>
 
-    <mat-form-field appearance="fill" class="w-full">
-      <mat-label>Email</mat-label>
-      <input matInput placeholder="Email" formControlName="email" />
-      <mat-icon matPrefix>email</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="w-full">
-      <mat-label>Password</mat-label>
-      <input
-        matInput
-        formControlName="password"
-        type="{{ hide ? 'password' : 'text' }}"
-        placeholder="Password"
-      />
-      <mat-icon matPrefix>lock</mat-icon>
-      <mat-icon (click)="hide = !hide" matSuffix>{{
-        hide ? "visibility_off" : "visibility"
-      }}</mat-icon>
-    </mat-form-field>
     <button
       [disabled]="!form.valid"
       type="submit"
@@ -35,10 +60,13 @@
     >
       Login
     </button>
-    <div class="my-5">
+
+    <div class="my-5 text-center">
       <span class="text-slate-600">
-        Dont have an account?
-        <a routerLink="/register" class="text-purple-700">Register</a>
+        Don't have an account?
+        <a routerLink="/register" class="text-purple-700 font-medium"
+          >Register</a
+        >
       </span>
     </div>
   </form>

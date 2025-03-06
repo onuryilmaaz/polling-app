@@ -2,7 +2,9 @@
   class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white py-16"
 >
   <div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-    <h2 class="text-2xl font-bold mb-6 text-center">Yeni Anket Oluştur</h2>
+    <h2 class="text-2xl font-bold mb-6 text-center text-black">
+      Yeni Anket Oluştur
+    </h2>
 
     <form (ngSubmit)="onSubmit()" #pollForm="ngForm" class="space-y-6">
       <!-- Anket Başlığı -->
@@ -154,7 +156,7 @@
         >
           <span class="font-medium">Zorunlu Mu?</span>
         </mat-checkbox>
-
+        @if(question.type != 1 && question.type != 2){
         <!-- Maksimum Seçim Sayısı -->
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Maksimum Seçim Sayısı</mat-label>
@@ -166,6 +168,7 @@
             [(ngModel)]="question.maxSelections"
           />
         </mat-form-field>
+        }
 
         <!-- Seçenekler Bölümü - Belirgin başlık -->
         <div class="bg-blue-50 rounded-md p-3 mt-4 border border-blue-200">
@@ -204,8 +207,7 @@
               />
             </mat-form-field>
           </div>
-
-          <!-- Seçenek Ekle Butonu -->
+          @if(question.type != 1){
           <button
             mat-button
             type="button"
@@ -215,6 +217,8 @@
             <mat-icon class="mr-1">add_circle</mat-icon>
             Seçenek Ekle
           </button>
+          }
+          <!-- Seçenek Ekle Butonu -->
         </div>
       </div>
 

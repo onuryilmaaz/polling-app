@@ -152,31 +152,63 @@
             </div>
           </div>
 
-          <!-- Ranking -->
-          <div *ngIf="question.type === questionType.Ranking" class="space-y-4">
+          <!-- Sıralama (Ranking) tipi soru -->
+          <div
+            *ngIf="question.type === questionType.Ranking"
+            class="space-y-4 text-black"
+          >
             <p class="text-sm text-gray-500">Sıralama yapınız (1: En yüksek)</p>
-            <div
-              *ngFor="let option of question.options"
-              class="flex items-center space-x-2"
-            >
-              <select
-                [(ngModel)]="rankedOptions[question.id][option.id]"
-                [name]="'rank_' + question.id + '_' + option.id"
-                class="p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+            <div class="flex flex-col">
+              <div class="mb-4 font-medium">
+                {{ question.maxSelections }} tane seçebilirsiniz.
+              </div>
+
+              <div
+                cdkDropList
+                [id]="'selected_' + question.id"
+                [cdkDropListData]="selectedRankingOptions[question.id]"
+                [cdkDropListConnectedTo]="['unselected_' + question.id]"
+                (cdkDropListDropped)="drop($event, question.id)"
+                class="min-h-20 p-2 border-2 border-blue-500 rounded-md bg-blue-50 mb-4"
               >
-                <option [ngValue]="null">Seçiniz</option>
-                <option
+                <div
                   *ngFor="
-                    let i of getNumberArray(
-                      question.options ? question.options.length : 0
-                    )
+                    let option of selectedRankingOptions[question.id];
+                    let i = index
                   "
-                  [ngValue]="i"
+                  cdkDrag
+                  class="p-2 mb-2 bg-white rounded-md shadow cursor-move flex items-center"
                 >
-                  {{ i }}
-                </option>
-              </select>
-              <label class="text-gray-700">{{ option.text }}</label>
+                  <div class="mr-2 font-bold">{{ i + 1 }}</div>
+                  <div>{{ option.text }}</div>
+                </div>
+              </div>
+
+              <div class="border-t-2 border-gray-300 my-4 relative">
+                <span
+                  class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-gray-500 rounded-lg py-1"
+                >
+                  Sıralanmamış öğeler
+                </span>
+              </div>
+
+              <div
+                cdkDropList
+                [id]="'unselected_' + question.id"
+                [cdkDropListData]="unselectedRankingOptions[question.id]"
+                [cdkDropListConnectedTo]="['selected_' + question.id]"
+                (cdkDropListDropped)="drop($event, question.id)"
+                class="min-h-20 p-2 border-2 border-gray-200 rounded-md mt-4"
+              >
+                <div
+                  *ngFor="let option of unselectedRankingOptions[question.id]"
+                  cdkDrag
+                  class="p-2 mb-2 bg-white rounded-md shadow cursor-move"
+                >
+                  {{ option.text }}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -20,13 +20,13 @@ import { ValidationError } from '../../interfaces/validation-error';
   selector: 'app-register',
   standalone: true,
   imports: [
+    CommonModule,
     MatInputModule,
     ReactiveFormsModule,
     RouterLink,
     MatSelectModule,
     MatIconModule,
     MatSnackBarModule,
-    CommonModule,
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
@@ -70,10 +70,37 @@ export class RegisterComponent implements OnInit {
     this.registerForm = this.fb.group(
       {
         email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required]],
-        fullName: ['', Validators.required],
+        password: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(8), // En az 8 karakter
+            Validators.pattern(/[A-Z]/), // En az bir büyük harf
+            Validators.pattern(/[a-z]/), // En az bir küçük harf
+            Validators.pattern(/[0-9]/), // En az bir rakam
+            Validators.pattern(/[@$!%*?&.]/), // En az bir özel karakter
+          ],
+        ],
+        fullName: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(3),
+            Validators.maxLength(15),
+          ],
+        ],
         roles: [['User']],
-        confirmPassword: ['', Validators.required],
+        confirmPassword: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(8), // En az 8 karakter
+            Validators.pattern(/[A-Z]/), // En az bir büyük harf
+            Validators.pattern(/[a-z]/), // En az bir küçük harf
+            Validators.pattern(/[0-9]/), // En az bir rakam
+            Validators.pattern(/[@$!%*?&]/), // En az bir özel karakter
+          ],
+        ],
       },
       {
         validator: this.passwordMatchValidator,

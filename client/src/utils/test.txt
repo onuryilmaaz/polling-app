@@ -425,3 +425,27 @@
     </form>
   </div>
 </div>
+-----------
+<!-- Ranking -->
+          <div *ngIf="question.type === questionType.Ranking" class="space-y-4">
+            <p class="text-sm text-gray-500">Sıralama yapınız (1: En yüksek)</p>
+            <div
+              *ngFor="let option of question.options"
+              class="flex items-center space-x-2"
+            >
+              <select
+                [(ngModel)]="rankedOptions[question.id][option.id]"
+                [name]="'rank_' + question.id + '_' + option.id"
+                class="p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              >
+                <option [ngValue]="null">Seçiniz</option>
+                <option
+                  *ngFor="let i of getNumberArray(question.maxSelections)"
+                  [ngValue]="i"
+                >
+                  {{ i }}
+                </option>
+              </select>
+              <label class="text-gray-700">{{ option.text }}</label>
+            </div>
+          </div>

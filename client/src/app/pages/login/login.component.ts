@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
+  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -11,11 +12,13 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
+    CommonModule,
     MatInputModule,
     MatSnackBarModule,
     MatIconModule,
@@ -53,7 +56,17 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8), // En az 8 karakter
+          Validators.pattern(/[A-Z]/), // En az bir büyük harf
+          Validators.pattern(/[a-z]/), // En az bir küçük harf
+          Validators.pattern(/[0-9]/), // En az bir rakam
+          Validators.pattern(/[@$!%*?&.]/), // En az bir özel karakter
+        ],
+      ],
     });
   }
 }
