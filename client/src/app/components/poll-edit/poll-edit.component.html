@@ -1,5 +1,5 @@
 <div
-  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white text-center py-16"
+  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white py-16"
 >
   <div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
     <h2 class="text-2xl font-bold mb-6 text-center">Anketi Düzenle</h2>
@@ -9,6 +9,9 @@
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Anket Başlığı</mat-label>
         <input
+          maxlength="50"
+          minlength="5"
+          [formControl]="titleFormControl"
           matInput
           type="text"
           id="title"
@@ -16,6 +19,15 @@
           [(ngModel)]="poll.title"
           required
         />
+        <mat-error *ngIf="titleFormControl.hasError('required')">
+          Başlık <strong>zorunlu</strong>
+        </mat-error>
+        <mat-error *ngIf="titleFormControl.hasError('minlength')"
+          >En az 5 karakter</mat-error
+        >
+        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
+          >En fazla 50 karakter</mat-error
+        >
       </mat-form-field>
 
       <!-- Açıklama -->

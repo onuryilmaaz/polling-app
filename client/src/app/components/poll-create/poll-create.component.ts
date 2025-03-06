@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
 import { Router } from '@angular/router';
 import { PollCreateDto, QuestionType } from '../../models/poll.models';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -12,6 +11,12 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
+import {
+  FormControl,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-poll-create',
@@ -27,6 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './poll-create.component.html',
   styleUrls: ['./poll-create.component.css'],
@@ -35,10 +41,18 @@ export class PollCreateComponent implements OnInit {
   poll: PollCreateDto = {
     title: '',
     description: '',
+    createdDate: undefined,
     expiryDate: undefined,
     isActive: true,
     questions: [],
   };
+
+  //formControl
+  titleFormControl = new FormControl('', [
+    Validators.required,
+    Validators.maxLength(50),
+    Validators.minLength(5),
+  ]);
 
   constructor(private pollService: PollService, private router: Router) {}
 
@@ -83,6 +97,10 @@ export class PollCreateComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.poll.createdDate) {
+      this.poll.createdDate = new Date(this.poll.createdDate); // Date nesnesi olarak tut
+    }
+
     if (this.poll.expiryDate) {
       this.poll.expiryDate = new Date(this.poll.expiryDate); // Date nesnesi olarak tut
     }

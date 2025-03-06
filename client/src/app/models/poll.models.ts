@@ -1,6 +1,7 @@
 export interface PollCreateDto {
   title: string;
   description?: string;
+  createdDate?: Date;
   expiryDate?: Date;
   isActive: boolean;
   questions: QuestionCreateDto[];
@@ -9,6 +10,7 @@ export interface PollCreateDto {
 export interface PollUpdateDto {
   title: string;
   description?: string;
+  createdDate?: Date;
   expiryDate?: Date | null;
   isActive: boolean;
   questions: QuestionUpdateDto[];

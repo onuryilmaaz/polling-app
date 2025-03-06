@@ -6,7 +6,12 @@ import {
   PollDetailDto,
   QuestionType,
 } from '../../models/poll.models';
-import { FormsModule } from '@angular/forms';
+import {
+  FormControl,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -31,6 +36,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './poll-edit.component.html',
   styleUrls: ['./poll-edit.component.css'],
@@ -44,6 +50,13 @@ export class PollEditComponent implements OnInit {
     isActive: true,
     questions: [],
   };
+
+  //formControl
+  titleFormControl = new FormControl('', [
+    Validators.required,
+    Validators.maxLength(50),
+    Validators.minLength(5),
+  ]);
 
   constructor(
     private pollService: PollService,

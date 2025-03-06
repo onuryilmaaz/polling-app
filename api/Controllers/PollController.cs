@@ -17,6 +17,7 @@ public class PollController : ControllerBase
         _context = context;
     }
 
+    #region Anket Oluşturma
     // Admin'in anket oluşturması için metot
     [HttpPost("create")]
     [Authorize(Roles = "Admin")]
@@ -38,7 +39,7 @@ public class PollController : ControllerBase
             {
                 Title = pollDto.Title ?? string.Empty,
                 Description = pollDto.Description,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = pollDto.CreatedDate,
                 ExpiryDate = pollDto.ExpiryDate,
                 IsActive = pollDto.IsActive,
                 CreatedByUserId = userId.ToString(),
@@ -117,111 +118,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anket oluşturulurken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
-
-    // [HttpPut("update/{id}")]
-    // [Authorize(Roles = "Admin")]
-    // public async Task<IActionResult> UpdatePoll(int id, [FromBody] PollUpdateDto pollDto)
-    // {
-    //     using var transaction = await _context.Database.BeginTransactionAsync();
-    //     try
-    //     {
-    //         var poll = await _context.Polls
-    //             .Include(s => s.Questions)
-    //             .ThenInclude(q => q.Options)
-    //             .FirstOrDefaultAsync(s => s.Id == id);
-
-    //         if (poll == null) return NotFound("Anket bulunamadı.");
-
-    //         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-    //         if (userIdClaim == null) return Unauthorized();
-
-    //         if (!Guid.TryParse(poll.CreatedByUserId, out var createdBy) ||
-    //             createdBy != Guid.Parse(userIdClaim.Value))
-    //         {
-    //             return Forbid();
-    //         }
-
-    //         // Ana bilgileri güncelle
-    //         poll.Title = pollDto.Title ?? string.Empty;
-    //         poll.Description = pollDto.Description;
-    //         poll.ExpiryDate = pollDto.ExpiryDate;
-    //         poll.IsActive = pollDto.IsActive;
-
-    //         // Mevcut soruları sil
-    //         _context.Questions.RemoveRange(poll.Questions);
-
-    //         // Yeni soruları ekle
-    //         foreach (var questionDto in pollDto.Questions)
-    //         {
-    //             var question = new Question
-    //             {
-    //                 Text = questionDto.Text ?? string.Empty,
-    //                 Type = questionDto.Type,
-    //                 OrderIndex = questionDto.OrderIndex,
-    //                 IsRequired = questionDto.IsRequired,
-    //                 MaxSelections = questionDto.Type == QuestionType.MultipleChoice ||
-    //                               questionDto.Type == QuestionType.Ranking
-    //                               ? questionDto.MaxSelections
-    //                               : null,
-    //                 Options = new List<Option>()
-    //             };
-
-    //             // // Yes/No için otomatik seçenek
-    //             // if (question.Type == QuestionType.YesNo)
-    //             // {
-    //             //     question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
-    //             //     question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
-    //             // }
-
-    //             // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
-    //             if (question.Type == QuestionType.YesNo)
-    //             {
-    //                 // Otomatik seçenekleri düzgün order index ile ekle
-    //                 question.Options.Add(new Option
-    //                 {
-    //                     Text = "Evet",
-    //                     OrderIndex = 1 // ← Sıralama için önemli
-    //                 });
-    //                 question.Options.Add(new Option
-    //                 {
-    //                     Text = "Hayır",
-    //                     OrderIndex = 2
-    //                 });
-
-    //                 // YesNo sorularında kullanıcının seçenek eklemesini engelle
-    //                 questionDto.Options = null; // ← Frontend'den gelse bile ignore et
-    //             }
-
-    //             // Diğer seçenekleri ekle
-    //             else if (questionDto.Options != null)
-    //             {
-    //                 foreach (var optionDto in questionDto.Options)
-    //                 {
-    //                     question.Options.Add(new Option
-    //                     {
-    //                         Text = optionDto.Text ?? string.Empty,
-    //                         OrderIndex = optionDto.OrderIndex
-    //                     });
-    //                 }
-    //             }
-
-    //             poll.Questions.Add(question);
-    //         }
-    //         _context.Polls.Add(poll);
-    //         await _context.SaveChangesAsync();
-
-
-    //         return Ok(new { message = "Anket başarıyla güncellendi." });
-
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         await transaction.RollbackAsync();
-    //         return StatusCode(500, $"Detaylı hata: {ex.InnerException?.Message ?? ex.Message}");
-    //     }
-    // }
-
+    #region Anket Güncelleme
     [HttpPut("update/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePoll(int id, [FromBody] PollUpdateDto pollDto)
@@ -314,7 +213,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Detaylı hata: {ex.InnerException?.Message ?? ex.Message}");
         }
     }
+    #endregion
 
+    #region Anket Aktif-Pasif
     [HttpDelete("toogle/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePoll(int id)
@@ -360,8 +261,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anket pasifleştirilirken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
-
+    #region Anket Listeleme
     // Anket detaylarını getiren metot
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPollById(int id)
@@ -413,7 +315,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anket bilgileri alınırken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
+    #region Anket Cevaplama
     // Kullanıcının ankete yanıt vermesi için metot
     [HttpPost("submit/{pollId}")]
     public async Task<IActionResult> SubmitPollResponse(int pollId, [FromBody] PollResponseDto responseDto)
@@ -563,7 +467,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anket yanıtı kaydedilirken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
+    #region Aktif Anketleri Listeleme
     // Tüm aktif anketleri listeleyen metot
     [HttpGet("active")]
     public async Task<IActionResult> GetActivePolls()
@@ -629,7 +535,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anketler listelenirken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
+    #region Anket Süresi
     [HttpGet("check-expiration")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CheckPollExpiration()
@@ -662,4 +570,6 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anket süresi kontrolünde hata oluştu: {ex.Message}");
         }
     }
+    #endregion
+
 }

@@ -1,5 +1,5 @@
 <div
-  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white text-center py-16"
+  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white py-16"
 >
   <div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
     <h2 class="text-2xl font-bold mb-6 text-center">Yeni Anket Oluştur</h2>
@@ -9,6 +9,9 @@
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Anket Başlığı</mat-label>
         <input
+          maxlength="50"
+          minlength="5"
+          [formControl]="titleFormControl"
           matInput
           type="text"
           id="title"
@@ -16,6 +19,15 @@
           [(ngModel)]="poll.title"
           required
         />
+        <mat-error *ngIf="titleFormControl.hasError('required')">
+          Başlık <strong>zorunlu</strong>
+        </mat-error>
+        <mat-error *ngIf="titleFormControl.hasError('minlength')"
+          >En az 5 karakter</mat-error
+        >
+        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
+          >En fazla 50 karakter</mat-error
+        >
       </mat-form-field>
 
       <!-- Açıklama -->
@@ -27,6 +39,26 @@
           name="description"
           [(ngModel)]="poll.description"
         ></textarea>
+        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
+          >En fazla 150 karakter</mat-error
+        >
+      </mat-form-field>
+
+      <!-- Başlangıç Tarihi -->
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Başlangıç Tarihi</mat-label>
+        <input
+          matInput
+          [matDatepicker]="picker1"
+          id="createdDate"
+          name="createdDate"
+          [(ngModel)]="poll.createdDate"
+        />
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="picker1"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #picker1></mat-datepicker>
       </mat-form-field>
 
       <!-- Bitiş Tarihi -->
@@ -34,13 +66,16 @@
         <mat-label>Bitiş Tarihi</mat-label>
         <input
           matInput
-          [matDatepicker]="picker"
+          [matDatepicker]="picker2"
           id="expiryDate"
           name="expiryDate"
           [(ngModel)]="poll.expiryDate"
         />
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="picker2"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #picker2></mat-datepicker>
       </mat-form-field>
 
       <!-- Aktif Mi? -->
