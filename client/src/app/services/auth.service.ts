@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import { RegisterRequest } from '../interfaces/register-request';
 import { UserDetail } from '../interfaces/user-detail';
 import { AuthResponse } from '../interfaces/auth-response';
+import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root',
@@ -68,6 +69,12 @@ export class AuthService {
 
   logout = (): void => {
     localStorage.removeItem(this.tokenKey);
+    Swal.fire({
+      title: 'Başarılı!',
+      text: 'Çıkış başarılı',
+      icon: 'success',
+      timer: 1000,
+    });
   };
 
   getRoles = (): string[] | null => {

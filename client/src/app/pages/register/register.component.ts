@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ValidationError } from '../../interfaces/validation-error';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -44,25 +45,23 @@ export class RegisterComponent implements OnInit {
   register() {
     this.authService.register(this.registerForm.value).subscribe({
       next: (response) => {
-        console.log(response);
-        this.matSnackBar.open(response.message, 'Close', {
-          duration: 5000,
-          horizontalPosition: 'center',
+        Swal.fire({
+          title: 'Başarılı!',
+          text: response.message,
+          icon: 'success',
+          timer: 1000,
         });
         this.router.navigate(['/login']);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('Error response:', err);
-        if (err.status === 400) {
-          console.log('Validation errors:', err.error.errors); // Hata detaylarını görmek için
-          this.errors = err.error.errors;
-          this.matSnackBar.open('Validation Error', 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-          });
-        }
+        err == err.error[0].description;
+        Swal.fire({
+          title: 'Hata!',
+          text: 'Bu mail adresi alınmış',
+          icon: 'error',
+          confirmButtonText: 'Kapat',
+        });
       },
-      //complete: () => console.log('Register success'),
     });
   }
 
@@ -98,7 +97,7 @@ export class RegisterComponent implements OnInit {
             Validators.pattern(/[A-Z]/), // En az bir büyük harf
             Validators.pattern(/[a-z]/), // En az bir küçük harf
             Validators.pattern(/[0-9]/), // En az bir rakam
-            Validators.pattern(/[@$!%*?&]/), // En az bir özel karakter
+            Validators.pattern(/[@$!%*?&.]/), // En az bir özel karakter
           ],
         ],
       },

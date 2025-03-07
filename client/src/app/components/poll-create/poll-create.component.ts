@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
 import { Router } from '@angular/router';
 import { PollCreateDto, QuestionType } from '../../models/poll.models';
@@ -12,11 +12,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import Swal from 'sweetalert2';
 import {
-  FormControl,
   Validators,
   FormsModule,
   ReactiveFormsModule,
+  FormGroup,
+  FormBuilder,
 } from '@angular/forms';
 
 @Component({
@@ -48,17 +50,36 @@ export class PollCreateComponent implements OnInit {
     isActive: true,
     questions: [],
   };
-
-  //formControl
-  titleFormControl = new FormControl('', [
-    Validators.required,
-    Validators.maxLength(50),
-    Validators.minLength(5),
-  ]);
+  form!: FormGroup;
+  fb = inject(FormBuilder);
 
   constructor(private pollService: PollService, private router: Router) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      title: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(5),
+          Validators.maxLength(30),
+        ],
+      ],
+      description: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(10),
+          Validators.maxLength(100),
+        ],
+      ],
+      createdDate: ['', [Validators.required]],
+      expiryDate: ['', [Validators.required]],
+      questions: [[], [Validators.required, Validators.minLength(1)]],
+      questionText: ['', [Validators.required]],
+      optionText: ['', [Validators.required]],
+    });
+  }
 
   // Yeni soru ekleme
   addQuestion(): void {
@@ -115,15 +136,24 @@ export class PollCreateComponent implements OnInit {
     // API isteği gönder
     this.pollService.createPoll(this.poll).subscribe({
       next: (response) => {
-        console.log('Anket başarıyla oluşturuldu:', response);
+        Swal.fire({
+          title: 'Başarılı!',
+          text: response.message,
+          icon: 'success',
+          timer: 1000,
+        });
         this.router.navigate(['/poll-list']);
       },
       error: (err) => {
-        console.error('Anket oluşturulurken hata oluştu:', err);
         if (err.error && err.error.errors) {
           console.log('Validation Errors:', err.error.errors);
         }
-        alert('Anket oluşturulurken bir hata oluştu: ' + err.message);
+        Swal.fire({
+          title: 'Hata!',
+          text: err.error.message,
+          icon: 'error',
+          confirmButtonText: 'Kapat',
+        });
       },
     });
   }

@@ -6,30 +6,42 @@
       Yeni Anket Oluştur
     </h2>
 
-    <form (ngSubmit)="onSubmit()" #pollForm="ngForm" class="space-y-6">
+    <form
+      (ngSubmit)="onSubmit()"
+      class="space-y-6"
+      #pollForm="ngForm"
+      [formGroup]="form"
+    >
       <!-- Anket Başlığı -->
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Anket Başlığı</mat-label>
         <input
           maxlength="50"
           minlength="5"
-          [formControl]="titleFormControl"
           matInput
           type="text"
           id="title"
           name="title"
           [(ngModel)]="poll.title"
-          required
+          formControlName="title"
         />
-        <mat-error *ngIf="titleFormControl.hasError('required')">
+        <mat-error
+          *ngIf="form.get('title')?.hasError('required')"
+          class="text-red-500"
+        >
           Başlık <strong>zorunlu</strong>
         </mat-error>
-        <mat-error *ngIf="titleFormControl.hasError('minlength')"
-          >En az 5 karakter</mat-error
+        <mat-error
+          *ngIf="form.get('title')?.hasError('minlength')"
+          class="text-red-500"
+          >En az 5 karakter
+        </mat-error>
+        <mat-error
+          *ngIf="form.get('title')?.hasError('maxlength')"
+          class="text-red-500"
         >
-        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
-          >En fazla 50 karakter</mat-error
-        >
+          En fazla 30 karakter
+        </mat-error>
       </mat-form-field>
 
       <!-- Açıklama -->
@@ -40,10 +52,25 @@
           id="description"
           name="description"
           [(ngModel)]="poll.description"
+          formControlName="description"
+          maxlength="101"
         ></textarea>
-        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
-          >En fazla 150 karakter</mat-error
+        <mat-error
+          *ngIf="form.get('description')?.hasError('required')"
+          class="text-red-500"
         >
+          Açıklama <strong>zorunlu</strong>
+        </mat-error>
+        <mat-error
+          *ngIf="form.get('description')?.hasError('minlength')"
+          class="text-red-500"
+          >En az 10 karakter
+        </mat-error>
+        <mat-error
+          *ngIf="form.get('description')?.hasError('maxlength')"
+          class="text-red-500"
+          >En fazla 1000 karakter
+        </mat-error>
       </mat-form-field>
 
       <!-- Başlangıç Tarihi -->
@@ -55,12 +82,19 @@
           id="createdDate"
           name="createdDate"
           [(ngModel)]="poll.createdDate"
+          formControlName="createdDate"
         />
         <mat-datepicker-toggle
           matSuffix
           [for]="picker1"
         ></mat-datepicker-toggle>
         <mat-datepicker #picker1></mat-datepicker>
+        <mat-error
+          *ngIf="form.get('createdDate')?.hasError('required')"
+          class="text-red-500"
+        >
+          Başlangıç tarihi <strong>zorunlu</strong>
+        </mat-error>
       </mat-form-field>
 
       <!-- Bitiş Tarihi -->
@@ -72,12 +106,19 @@
           id="expiryDate"
           name="expiryDate"
           [(ngModel)]="poll.expiryDate"
+          formControlName="expiryDate"
         />
         <mat-datepicker-toggle
           matSuffix
           [for]="picker2"
         ></mat-datepicker-toggle>
         <mat-datepicker #picker2></mat-datepicker>
+        <mat-error
+          *ngIf="form.get('expiryDate')?.hasError('required')"
+          class="text-red-500"
+        >
+          Bitiş tarihi <strong>zorunlu</strong>
+        </mat-error>
       </mat-form-field>
 
       <!-- Aktif Mi? -->
@@ -127,8 +168,14 @@
             [id]="'questionText' + i"
             [name]="'questionText' + i"
             [(ngModel)]="question.text"
-            required
+            formControlName="questionText"
           />
+          <mat-error
+            *ngIf="form.get('questionText')?.hasError('required')"
+            class="text-red-500"
+          >
+            Soru metni <strong>zorunlu</strong>
+          </mat-error>
         </mat-form-field>
 
         <!-- Soru Türü -->
@@ -203,8 +250,14 @@
                 [id]="'optionText' + i + '-' + j"
                 [name]="'optionText' + i + '-' + j"
                 [(ngModel)]="option.text"
-                required
+                formControlName="optionText"
               />
+              <mat-error
+                *ngIf="form.get('optionText')?.hasError('required')"
+                class="text-red-500"
+              >
+                Seçenek <strong>zorunlu</strong>
+              </mat-error>
             </mat-form-field>
           </div>
           @if(question.type != 1){
@@ -218,7 +271,7 @@
             Seçenek Ekle
           </button>
           }
-          <!-- Seçenek Ekle Butonu -->
+          <!-- Seçenek Ekle Butonu -->a
         </div>
       </div>
 

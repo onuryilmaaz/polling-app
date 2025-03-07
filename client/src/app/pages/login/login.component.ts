@@ -1,7 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
-  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -10,9 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +18,6 @@ import { CommonModule } from '@angular/common';
   imports: [
     CommonModule,
     MatInputModule,
-    MatSnackBarModule,
     MatIconModule,
     ReactiveFormsModule,
     RouterLink,
@@ -30,24 +27,28 @@ import { CommonModule } from '@angular/common';
 })
 export class LoginComponent implements OnInit {
   authService = inject(AuthService);
-  matSnackBar = inject(MatSnackBar);
   router = inject(Router);
   hide = true;
   form!: FormGroup;
   fb = inject(FormBuilder);
+
   login() {
     this.authService.login(this.form.value).subscribe({
       next: (response) => {
-        this.matSnackBar.open(response.message, 'Close', {
-          duration: 5000,
-          horizontalPosition: 'center',
+        Swal.fire({
+          title: 'Başarılı!',
+          text: response.message,
+          icon: 'success',
+          timer: 1000,
         });
         this.router.navigate(['/']);
       },
       error: (error) => {
-        this.matSnackBar.open(error.error.message, 'Close', {
-          duration: 5000,
-          horizontalPosition: 'center',
+        Swal.fire({
+          title: 'Hata!',
+          text: error.error.message,
+          icon: 'error',
+          confirmButtonText: 'Kapat',
         });
       },
     });
