@@ -4,6 +4,7 @@ import { PollListDto } from '../../models/poll.models';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar'; // MatSnackBar import edilmelidir
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin-poll-list',
@@ -134,39 +135,47 @@ export class AdminPollListComponent implements OnInit {
   }
 
   togglePollStatus(id: number, currentStatus: boolean): void {
-    // Konfirmasyon mesajını dinamik olarak ayarla
     const confirmMessage = currentStatus
       ? 'Bu anketi pasifleştirmek istediğinizden emin misiniz?'
       : 'Bu anketi aktifleştirmek istediğinizden emin misiniz?';
 
-    if (confirm(confirmMessage)) {
-      this.pollService.tooglePoll(id).subscribe({
-        next: () => {
-          // Aktif anketleri yeniden yükle
-          this.loadActivePolls();
+    Swal.fire({
+      title: 'Emin misiniz?',
+      text: confirmMessage,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Evet',
+      cancelButtonText: 'Hayır',
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.pollService.tooglePoll(id).subscribe({
+          next: () => {
+            this.loadActivePolls();
 
-          // Başarılı mesajı göster
-          const successMessage = currentStatus
-            ? 'Anket başarıyla pasifleştirildi'
-            : 'Anket başarıyla aktifleştirildi';
+            const successMessage = currentStatus
+              ? 'Anket başarıyla pasifleştirildi'
+              : 'Anket başarıyla aktifleştirildi';
 
-          this.snackBar.open(successMessage, 'Kapat', {
-            duration: 3000,
-            panelClass: ['success-snackbar'],
-          });
-        },
-        error: (err) => {
-          // Hata durumunda kullanıcıya bildirim göster
-          this.snackBar.open(
-            'İşlem sırasında hata oluştu: ' + err.message,
-            'Kapat',
-            {
-              duration: 5000,
-              panelClass: ['error-snackbar'],
-            }
-          );
-        },
-      });
-    }
+            Swal.fire({
+              title: 'Başarılı!',
+              text: successMessage,
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          },
+          error: (err) => {
+            Swal.fire({
+              title: 'Hata!',
+              text: 'İşlem sırasında hata oluştu: ' + err.message,
+              icon: 'error',
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          },
+        });
+      }
+    });
   }
 }
