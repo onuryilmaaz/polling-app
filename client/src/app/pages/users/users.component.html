@@ -1,0 +1,60 @@
+<!-- <div class="mx-60 py-10">
+  <h1 class="text-3xl font-bold">All Users</h1>
+  <div class="shadow-md text-left rounded-md mt-4">
+    <table class="w-full rounded-md">
+      <thead>
+        <tr>
+          <th class="px-4 border py-2">Name</th>
+          <th class="px-4 border py-2">Email</th>
+          <th class="px-4 border py-2">Role</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (item of user$ | async; track item.id) {
+        <tr>
+          <td class="border px-4 py-2">{{ item.fullName }}</td>
+          <td class="border px-4 py-2">{{ item.email }}</td>
+          <td class="border px-4 py-2">{{ item.roles }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div> -->
+
+<div class="mx-60 py-10">
+  <h1 class="text-3xl font-bold">All Users</h1>
+  <div class="shadow-md text-left rounded-md mt-4">
+    <table class="w-full rounded-md">
+      <thead>
+        <tr>
+          <th class="px-4 border py-2">Name</th>
+          <th class="px-4 border py-2">Email</th>
+          <th class="px-4 border py-2">Role</th>
+          <th class="px-4 border py-2">Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of user$ | async">
+          <td class="border px-4 py-2">{{ item.fullName }}</td>
+          <td class="border px-4 py-2">{{ item.email }}</td>
+          <td class="border px-4 py-2">{{ item.roles }}</td>
+          <td class="border py-2 flex items-center justify-center">
+            <button
+              (click)="toggleUserStatus(item.id, !item.isActive)"
+              [ngClass]="{
+                'bg-green-500': item.isActive,
+                'bg-red-500': !item.isActive
+              }"
+              class="rounded-md px-4 py-2 text-center"
+            >
+              {{ item.isActive ? "Aktif" : "Pasif" }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+ <!-- Already submitted view -->
+    <div *ngIf="poll && !hasAlreadySubmitted && !isLoading && isSubmitting">
+      <h2 class="text-2xl font-bold text-black mb-4">{{ poll.title }}</h2>
+      <p class="text-gray-600 mb-6">{{ poll.description }}</p>
+
+      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h3 class="text-lg font-medium text-blue-800 mb-2">
+          Ankete katıldığınız için teşekkür ederiz!
+        </h3>
+        <p class="text-blue-700">
+          Anket sonuçları tamamlandığında bilgilendirileceksiniz.
+        </p>
+      </div>
+    </div>
+    }@else{
+    <div *ngIf="poll && hasAlreadySubmitted && !isLoading && isSubmitting">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ poll.title }}</h2>
+      <p class="text-gray-600 mb-6">{{ poll.description }}</p>
+
+      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h3 class="text-lg font-medium text-blue-800 mb-2">
+          Ankete katıldığınız için teşekkür ederiz!
+        </h3>
+        <p class="text-blue-700">
+          Anket sonuçları tamamlandığında bilgilendirileceksiniz.
+        </p>
+      </div>
+    </div>
