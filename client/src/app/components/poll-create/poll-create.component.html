@@ -185,6 +185,7 @@
             [id]="'questionType' + i"
             [name]="'questionType' + i"
             [(ngModel)]="question.type"
+            [ngModelOptions]="{ standalone: true }"
           >
             <mat-option value="0">Tek Seçim</mat-option>
             <mat-option value="1">Metin</mat-option>
@@ -249,8 +250,8 @@
                 matInput
                 [id]="'optionText' + i + '-' + j"
                 [name]="'optionText' + i + '-' + j"
-                [(ngModel)]="option.text"
-                formControlName="optionText"
+                [(ngModel)]="question.options[i].text"
+                required
               />
               <mat-error
                 *ngIf="form.get('optionText')?.hasError('required')"

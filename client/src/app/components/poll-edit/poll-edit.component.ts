@@ -150,32 +150,6 @@ export class PollEditComponent implements OnInit {
     );
   }
 
-  // onSubmit(): void {
-  //   if (!this.pollId) {
-  //     alert('Anket ID bulunamadı');
-  //     return;
-  //   }
-  //   if (this.poll.expiryDate) {
-  //     this.poll.expiryDate = new Date(this.poll.expiryDate);
-  //   }
-  //   this.poll.questions.forEach((question) => {
-  //     question.type = Number(question.type);
-  //   });
-  //   this.pollService.updatePoll(this.pollId, this.poll).subscribe({
-  //     next: (response) => {
-  //       console.log('Anket başarıyla güncellendi:', response);
-  //       this.router.navigate(['/poll-list']);
-  //     },
-  //     error: (err) => {
-  //       console.error('Hata Detayları:', err);
-  //       if (err.error) {
-  //         console.log('Sunucu Yanıtı:', err.error); // Sunucunun döndüğü detayları logla
-  //       }
-  //       alert('Güncelleme başarısız: ' + (err.error?.message || err.message));
-  //     },
-  //   });
-  // }
-
   onSubmit(): void {
     if (!this.pollId) {
       alert('Anket ID bulunamadı');

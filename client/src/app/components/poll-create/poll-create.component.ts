@@ -56,30 +56,6 @@ export class PollCreateComponent implements OnInit {
   constructor(private pollService: PollService, private router: Router) {}
 
   ngOnInit(): void {
-    // this.form = this.fb.group({
-    //   title: [
-    //     '',
-    //     [
-    //       Validators.required,
-    //       Validators.minLength(5),
-    //       Validators.maxLength(30),
-    //     ],
-    //   ],
-    //   description: [
-    //     '',
-    //     [
-    //       Validators.required,
-    //       Validators.minLength(10),
-    //       Validators.maxLength(100),
-    //     ],
-    //   ],
-    //   createdDate: ['', [Validators.required]],
-    //   expiryDate: ['', [Validators.required]],
-    //   questions: [[], [Validators.required, Validators.minLength(1)]],
-    //   questionText: ['', [Validators.required]],
-    //   optionText: ['', [Validators.required]],
-    // });
-
     this.form = this.fb.group({
       title: [
         '',
@@ -100,10 +76,6 @@ export class PollCreateComponent implements OnInit {
       createdDate: ['', Validators.required],
       expiryDate: ['', Validators.required],
       questionText: ['', [Validators.required]],
-      // questions: this.fb.array(
-      //   [],
-      //   [Validators.required, Validators.minLength(1)]
-      // ), // FormArray yapısı
     });
   }
 
@@ -111,7 +83,7 @@ export class PollCreateComponent implements OnInit {
   addQuestion(): void {
     this.poll.questions.push({
       text: '',
-      type: QuestionType.YesNo,
+      type: QuestionType.Text,
       orderIndex: this.poll.questions.length,
       isRequired: false,
       maxSelections: undefined,

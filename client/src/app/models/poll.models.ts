@@ -100,4 +100,3 @@ export enum QuestionType {
   MultiSelect = 3, // Çoklu seçim (multiple options)
   Ranking = 4, // Sıralama
 }
-

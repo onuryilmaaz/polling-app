@@ -23,6 +23,7 @@ public class PollController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePoll([FromBody] PollCreateDto pollDto)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             // Giriş yapmış kullanıcının ID'sini al
@@ -57,68 +58,20 @@ public class PollController : ControllerBase
                         Type = questionDto.Type,
                         OrderIndex = questionDto.OrderIndex,
                         IsRequired = questionDto.IsRequired,
-                        MaxSelections = questionDto.Type == QuestionType.YesNo
-                                ? 1
-                                : questionDto.MaxSelections ?? 0,
+                        MaxSelections = questionDto.Type == QuestionType.MultipleChoice
+                                || questionDto.Type == QuestionType.Ranking
+                                ? questionDto.MaxSelections
+                                : null,
                         Options = new List<Option>()
                     };
 
-                    // // Eğer soru Yes/No tipi ise, otomatik olarak seçenekleri ekle
-                    // if (question.Type == QuestionType.YesNo)
-                    // {
-                    //     // Otomatik seçenekleri düzgün order index ile ekle
-                    //     question.Options.Add(new Option
-                    //     {
-                    //         Text = "Evet",
-                    //         OrderIndex = 1 // ← Sıralama için önemli
-                    //     });
-                    //     question.Options.Add(new Option
-                    //     {
-                    //         Text = "Hayır",
-                    //         OrderIndex = 2
-                    //     });
-
-                    //     // YesNo sorularında kullanıcının seçenek eklemesini engelle
-                    //     //questionDto.Options = null; // ← Frontend'den gelse bile ignore et
-                    // }
-
-                    // Eğer soru Yes/No tipi ise, seçenekleri ekle (kullanıcı özelleştirmesine izin vererek)
                     if (question.Type == QuestionType.YesNo)
                     {
-                        // Frontend'den gelen seçenekleri kontrol et
-                        bool hasCustomOptions = question.Options != null && question.Options.Count >= 2;
-
-                        // Eğer kullanıcı özel seçenek metinleri girmediyse, varsayılanları kullan
-                        if (!hasCustomOptions)
-                        {
-                            // Kullanıcı hiç seçenek girmemişse veya yetersiz seçenek girmişse
-                            question.Options = new List<Option>
-        {
-            new Option
-            {
-                Text = "Evet",
-                OrderIndex = 1
-            },
-            new Option
-            {
-                Text = "Hayır",
-                OrderIndex = 2
-            }
-        };
-                        }
-                        else
-                        {
-                            // Kullanıcının girdiği özel seçenekleri koru
-                            // Sadece OrderIndex'leri düzgün olduğundan emin ol
-                            for (int i = 0; i < question.Options.Count; i++)
-                            {
-                                question.Options[i].OrderIndex = i + 1;
-                            }
-                        }
+                        question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
+                        question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
+                        questionDto.Options = null; // Frontend'den gelse bile ignore et
                     }
-
-                    // Kullanıcının belirttiği seçenekleri ekle
-                    else if (questionDto.Options != null && questionDto.Options.Any())
+                    else if (questionDto.Options != null)
                     {
                         foreach (var optionDto in questionDto.Options)
                         {
@@ -132,10 +85,12 @@ public class PollController : ControllerBase
 
                     poll.Questions.Add(question);
                 }
+
             }
 
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return CreatedAtAction(nameof(GetPollById), new { id = poll.Id },
             new
@@ -151,6 +106,7 @@ public class PollController : ControllerBase
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             return StatusCode(500, $"Anket oluşturulurken bir hata oluştu: {ex.Message}");
         }
     }
