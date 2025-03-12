@@ -204,7 +204,8 @@
         >
           <span class="font-medium">Zorunlu Mu?</span>
         </mat-checkbox>
-        @if(question.type != 1 && question.type != 2){
+        @if(question.type != 0 && question.type != 1 &&question.type != 2
+        &&question.type != 3){
         <!-- Maksimum Seçim Sayısı -->
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Maksimum Seçim Sayısı</mat-label>
@@ -219,6 +220,7 @@
         }
 
         <!-- Seçenekler Bölümü - Belirgin başlık -->
+        @if(question.type != 1 && question.type != 2){
         <div class="bg-blue-50 rounded-md p-3 mt-4 border border-blue-200">
           <h4
             class="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2"
@@ -250,18 +252,19 @@
                 matInput
                 [id]="'optionText' + i + '-' + j"
                 [name]="'optionText' + i + '-' + j"
-                [(ngModel)]="question.options[i].text"
+                [(ngModel)]="option.text"
+                [ngModelOptions]="{ standalone: true }"
+                #optionField="ngModel"
                 required
               />
               <mat-error
-                *ngIf="form.get('optionText')?.hasError('required')"
+                *ngIf="optionField.invalid && optionField.touched"
                 class="text-red-500"
               >
-                Seçenek <strong>zorunlu</strong>
+                Seçenek metni <strong>zorunlu</strong>
               </mat-error>
             </mat-form-field>
           </div>
-          @if(question.type != 1){
           <button
             mat-button
             type="button"
@@ -271,9 +274,9 @@
             <mat-icon class="mr-1">add_circle</mat-icon>
             Seçenek Ekle
           </button>
-          }
           <!-- Seçenek Ekle Butonu -->a
         </div>
+        }
       </div>
 
       <!-- Soru Ekle Butonu -->

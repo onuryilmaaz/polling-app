@@ -15,6 +15,7 @@ import {
 } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import Swal from 'sweetalert2';
+import { MatIconModule } from '@angular/material/icon';
 
 enum QuestionType {
   MultipleChoice = 0, // Çoktan seçmeli (tek seçim)
@@ -27,7 +28,7 @@ enum QuestionType {
 @Component({
   selector: 'app-poll-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, MatIconModule],
   templateUrl: './poll-detail.component.html',
   styleUrls: ['./poll-detail.component.css'],
 })
@@ -122,7 +123,7 @@ export class PollDetailComponent implements OnInit {
       },
       error: (err) => {
         Swal.fire({
-          title: 'Cevap gönderilemdi',
+          title: 'Cevap gönderilemedi',
           text: err.error.message,
           icon: 'error',
           timer: 2000,
@@ -180,9 +181,16 @@ export class PollDetailComponent implements OnInit {
       // Listeler arası taşıma
       if (
         event.container.id.includes('selected') &&
+        question.maxSelections != null &&
+        question.maxSelections > 0 &&
         this.selectedRankingOptions[questionId].length >= maxSelections
       ) {
-        // Maksimum seçim sayısına ulaşıldı, eklemeye izin verme
+        Swal.fire({
+          title: 'Maksimum seçim sayısına ulaşıldı!',
+          text: `En fazla ${question.maxSelections} öğe seçebilirsiniz`,
+          icon: 'warning',
+          timer: 2000,
+        });
         return;
       }
 
@@ -193,7 +201,12 @@ export class PollDetailComponent implements OnInit {
         event.currentIndex
       );
     }
-
+    this.selectedRankingOptions[questionId] = [
+      ...this.selectedRankingOptions[questionId],
+    ];
+    this.unselectedRankingOptions[questionId] = [
+      ...this.unselectedRankingOptions[questionId],
+    ];
     // Sıralama değerlerini güncelle
     this.updateRankingValues(questionId);
   }
@@ -210,6 +223,31 @@ export class PollDetailComponent implements OnInit {
     this.selectedRankingOptions[questionId].forEach((option, index) => {
       this.rankedOptions[questionId][option.id] = index + 1;
     });
+  }
+
+  removeRankingOption(questionId: number, option: any): void {
+    // Seçilmişlerden kaldır
+    const selectedIndex =
+      this.selectedRankingOptions[questionId].indexOf(option);
+    if (selectedIndex > -1) {
+      this.selectedRankingOptions[questionId].splice(selectedIndex, 1);
+    }
+
+    // Seçilmemişlere ekle (orijinal sıraya dönmesi için)
+    if (!this.unselectedRankingOptions[questionId].includes(option)) {
+      this.unselectedRankingOptions[questionId].unshift(option); // En üste ekler
+    }
+
+    // Değişiklikleri tetikle
+    this.selectedRankingOptions[questionId] = [
+      ...this.selectedRankingOptions[questionId],
+    ];
+    this.unselectedRankingOptions[questionId] = [
+      ...this.unselectedRankingOptions[questionId],
+    ];
+
+    // Sıralama değerlerini yeniden hesapla
+    this.updateRankingValues(questionId);
   }
 
   // maxSelections değerine göre daha fazla seçenek eklenip eklenemeyeceğini kontrol eder

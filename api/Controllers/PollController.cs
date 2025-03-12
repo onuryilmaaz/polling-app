@@ -69,38 +69,43 @@ public class PollController : ControllerBase
                     {
                         question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
                         question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
-                        questionDto.Options = null; // Frontend'den gelse bile ignore et
+                        questionDto.Options = null;
                     }
                     else if (questionDto.Options != null)
                     {
+                        int orderIndex = 0;
                         foreach (var optionDto in questionDto.Options)
                         {
-                            question.Options.Add(new Option
+                            var option = new Option
                             {
                                 Text = optionDto.Text ?? string.Empty,
-                                OrderIndex = optionDto.OrderIndex
-                            });
+                                OrderIndex = optionDto.OrderIndex >= 0 ? optionDto.OrderIndex : orderIndex
+                            };
+
+                            question.Options.Add(option);
+                            orderIndex++;
                         }
                     }
 
                     poll.Questions.Add(question);
                 }
-
             }
-
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.DetectChanges();
             await transaction.CommitAsync();
 
             return CreatedAtAction(nameof(GetPollById), new { id = poll.Id },
             new
             {
                 id = poll.Id,
+                title = poll.Title,
                 questions = poll.Questions.Select(q => new
                 {
                     q.Id,
-                    options = q.Options.Select(o => new { o.Id, o.Text }) // ← Seçenek ID'leri
-                }),
+                    q.Text,
+                    options = q.Options.Select(o => new { o.Id, o.Text, o.OrderIndex }).ToList()
+                }).ToList(),
                 message = "Anket başarıyla oluşturuldu."
             });
         }
@@ -166,7 +171,7 @@ public class PollController : ControllerBase
                     Type = questionDto.Type,
                     OrderIndex = questionDto.OrderIndex,
                     IsRequired = questionDto.IsRequired,
-                    MaxSelections = questionDto.Type == QuestionType.MultipleChoice ||
+                    MaxSelections =
                                   questionDto.Type == QuestionType.Ranking
                                   ? questionDto.MaxSelections
                                   : null,
@@ -177,27 +182,55 @@ public class PollController : ControllerBase
                 {
                     question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
                     question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
-                    questionDto.Options = null; // Frontend'den gelse bile ignore et
+                    questionDto.Options = null;
                 }
+                // else if (questionDto.Options != null)
+                // {
+                //     //int orderIndex = 0;
+                //     foreach (var optionDto in questionDto.Options)
+                //     {
+                //         question.Options.Add(new Option
+                //         {
+                //             Text = optionDto.Text ?? string.Empty,
+                //             OrderIndex = optionDto.OrderIndex
+                //         });
+                //     }
+                // }
                 else if (questionDto.Options != null)
                 {
+                    int orderIndex = 0;
                     foreach (var optionDto in questionDto.Options)
                     {
-                        question.Options.Add(new Option
+                        var option = new Option
                         {
                             Text = optionDto.Text ?? string.Empty,
-                            OrderIndex = optionDto.OrderIndex
-                        });
+                            OrderIndex = optionDto.OrderIndex >= 0 ? optionDto.OrderIndex : orderIndex
+                        };
+
+                        question.Options.Add(option);
+                        orderIndex++;
                     }
                 }
 
                 poll.Questions.Add(question);
             }
-
+            _context.Polls.Update(poll);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return Ok(new { message = "Anket başarıyla güncellendi." });
+            return CreatedAtAction(nameof(GetPollById), new { id = poll.Id },
+            new
+            {
+                id = poll.Id,
+                title = poll.Title,
+                questions = poll.Questions.Select(q => new
+                {
+                    q.Id,
+                    q.Text,
+                    options = q.Options.Select(o => new { o.Id, o.Text, o.OrderIndex }).ToList()
+                }).ToList(),
+                message = "Anket başarıyla güncellendi."
+            });
         }
         catch (Exception ex)
         {

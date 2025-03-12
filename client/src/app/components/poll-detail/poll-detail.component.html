@@ -188,10 +188,19 @@
                     let i = index
                   "
                   cdkDrag
-                  class="p-2 mb-2 bg-white rounded-md shadow cursor-move flex items-center"
+                  class="p-2 mb-2 bg-white rounded-md shadow cursor-move flex items-center justify-between"
                 >
-                  <div class="mr-2 font-bold">{{ i + 1 }}</div>
-                  <div>{{ option.text }}</div>
+                  <div class="flex items-center">
+                    <div class="mr-2 font-bold">{{ i + 1 }}</div>
+                    <div>{{ option.text }}</div>
+                  </div>
+                  <button
+                    (click)="removeRankingOption(question.id, option)"
+                    class="ml-4 text-red-500 hover:text-red-700"
+                    type="button"
+                  >
+                    <mat-icon color="warn" class="text-sm">delete</mat-icon>
+                  </button>
                 </div>
               </div>
 

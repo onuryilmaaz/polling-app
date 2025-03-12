@@ -62,7 +62,7 @@ export class PollCreateComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(5),
-          Validators.maxLength(30),
+          Validators.maxLength(50),
         ],
       ],
       description: [
@@ -70,12 +70,12 @@ export class PollCreateComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(10),
-          Validators.maxLength(100),
+          Validators.maxLength(1000),
         ],
       ],
       createdDate: ['', Validators.required],
       expiryDate: ['', Validators.required],
-      questionText: ['', [Validators.required]],
+      questionText: ['', Validators.required],
     });
   }
 
@@ -83,7 +83,7 @@ export class PollCreateComponent implements OnInit {
   addQuestion(): void {
     this.poll.questions.push({
       text: '',
-      type: QuestionType.Text,
+      type: QuestionType.YesNo,
       orderIndex: this.poll.questions.length,
       isRequired: false,
       maxSelections: undefined,
@@ -95,7 +95,7 @@ export class PollCreateComponent implements OnInit {
   addOption(questionIndex: number): void {
     this.poll.questions[questionIndex].options?.push({
       text: '',
-      orderIndex: this.poll.questions[questionIndex].options.length,
+      orderIndex: this.poll.questions[questionIndex].options?.length ?? 0,
     });
   }
 
@@ -118,20 +118,52 @@ export class PollCreateComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Form geçerli mi kontrolü
+    if (this.form.invalid) {
+      // Tüm kontrolleri dokunulmuş olarak işaretle, böylece hatalar gösterilir
+      Object.keys(this.form.controls).forEach((key) => {
+        const control = this.form.get(key);
+        control?.markAsTouched();
+      });
+      return;
+    }
+
+    // Tarih dönüşümleri
     if (this.poll.createdDate) {
-      this.poll.createdDate = new Date(this.poll.createdDate); // Date nesnesi olarak tut
+      this.poll.createdDate = new Date(this.poll.createdDate);
     }
 
     if (this.poll.expiryDate) {
-      this.poll.expiryDate = new Date(this.poll.expiryDate); // Date nesnesi olarak tut
+      this.poll.expiryDate = new Date(this.poll.expiryDate);
     }
 
-    // type alanını sayısal değere dönüştür
+    // Soruları işle
     this.poll.questions.forEach((question) => {
-      question.type = Number(question.type); // String'i sayıya dönüştür
+      // Type alanını sayısal değere dönüştür
+      question.type = Number(question.type);
+
+      // Seçenekleri işle
+      if (question.options && question.options.length > 0) {
+        let hasEmptyOptions = false;
+
+        question.options.forEach((option, index) => {
+          // Boş seçenek kontrolü
+          if (!option.text || option.text.trim() === '') {
+            option.text = `Seçenek ${index + 1}`; // Varsayılan değer
+            hasEmptyOptions = true;
+          }
+
+          // OrderIndex değerini sayısal olarak ayarla
+          option.orderIndex = index;
+        });
+
+        // Boş seçenek uyarısı
+        if (hasEmptyOptions) {
+          console.warn('Bazı seçenekler boş. Varsayılan değerler atandı.');
+        }
+      }
     });
 
-    // API isteği gönder
     this.pollService.createPoll(this.poll).subscribe({
       next: (response) => {
         Swal.fire({
@@ -143,12 +175,10 @@ export class PollCreateComponent implements OnInit {
         this.router.navigate(['/poll-list']);
       },
       error: (err) => {
-        if (err.error && err.error.errors) {
-          console.log('Validation Errors:', err.error.errors);
-        }
+        console.error('Hata:', err);
         Swal.fire({
           title: 'Hata!',
-          text: err.error.message,
+          text: err.error?.message || 'Bir hata oluştu.',
           icon: 'error',
           confirmButtonText: 'Kapat',
         });

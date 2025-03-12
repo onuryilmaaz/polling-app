@@ -64,3 +64,99 @@
                             });
                         }
                     }
+
+--------------------------
+ #region Anket Oluşturma
+    // Admin'in anket oluşturması için metot
+    [HttpPost("create")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreatePoll([FromBody] PollCreateDto pollDto)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Giriş yapmış kullanıcının ID'sini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            Guid userId = Guid.Parse(userIdClaim.Value);
+
+            // Yeni anket oluştur
+            var poll = new Poll
+            {
+                Title = pollDto.Title ?? string.Empty,
+                Description = pollDto.Description,
+                CreatedDate = pollDto.CreatedDate,
+                ExpiryDate = pollDto.ExpiryDate,
+                IsActive = pollDto.IsActive,
+                CreatedByUserId = userId.ToString(),
+                Questions = new List<Question>()
+            };
+
+            // Soruları ekle
+            if (pollDto.Questions != null)
+            {
+                foreach (var questionDto in pollDto.Questions)
+                {
+                    var question = new Question
+                    {
+                        Text = questionDto.Text ?? string.Empty,
+                        Type = questionDto.Type,
+                        OrderIndex = questionDto.OrderIndex,
+                        IsRequired = questionDto.IsRequired,
+                        MaxSelections = questionDto.Type == QuestionType.MultipleChoice
+                                || questionDto.Type == QuestionType.Ranking
+                                ? questionDto.MaxSelections
+                                : null,
+                        Options = new List<Option>()
+                    };
+
+                    if (question.Type == QuestionType.YesNo)
+                    {
+                        question.Options.Add(new Option { Text = "Evet", OrderIndex = 0 });
+                        question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
+                        questionDto.Options = null; // Frontend'den gelse bile ignore et
+                    }
+                    else if (questionDto.Options != null)
+                    {
+                        foreach (var optionDto in questionDto.Options)
+                        {
+                            question.Options.Add(new Option
+                            {
+                                Text = optionDto.Text ?? string.Empty,
+                                OrderIndex = optionDto.OrderIndex
+                            });
+                        }
+                    }
+
+                    poll.Questions.Add(question);
+                }
+
+            }
+
+            _context.Polls.Add(poll);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return CreatedAtAction(nameof(GetPollById), new { id = poll.Id },
+            new
+            {
+                id = poll.Id,
+                questions = poll.Questions.Select(q => new
+                {
+                    q.Id,
+                    options = q.Options.Select(o => new { o.Id, o.Text }) // ← Seçenek ID'leri
+                }),
+                message = "Anket başarıyla oluşturuldu."
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, $"Anket oluşturulurken bir hata oluştu: {ex.Message}");
+        }
+    }
+    #endregion

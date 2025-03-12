@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PollService } from '../../services/poll.service';
 import {
@@ -11,6 +11,8 @@ import {
   Validators,
   FormsModule,
   ReactiveFormsModule,
+  FormGroup,
+  FormBuilder,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,6 +23,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-poll-edit',
@@ -50,6 +53,8 @@ export class PollEditComponent implements OnInit {
     isActive: true,
     questions: [],
   };
+  form!: FormGroup;
+  fb = inject(FormBuilder);
 
   //formControl
   titleFormControl = new FormControl('', [
@@ -80,6 +85,7 @@ export class PollEditComponent implements OnInit {
     if (this.pollId) {
       this.pollService.getPollById(this.pollId).subscribe({
         next: (pollDetail: PollDetailDto) => {
+          console.log('Loaded poll details:', pollDetail);
           // Map the retrieved poll details to the update DTO
           this.poll = {
             title: pollDetail.title,
@@ -150,73 +156,241 @@ export class PollEditComponent implements OnInit {
     );
   }
 
+  // onSubmit(): void {
+  //   if (!this.pollId) {
+  //     Swal.fire({
+  //       title: 'Hata!',
+  //       text: 'Anket Bulunamadı',
+  //       icon: 'error',
+  //       confirmButtonText: 'Kapat',
+  //     });
+  //     return;
+  //   }
+  //   console.log('Original poll object:', JSON.stringify(this.poll, null, 2));
+
+  //   // Deep copy oluştur ve veriyi formatla
+  //   const payload: PollUpdateDto = {
+  //     ...this.poll,
+  //     expiryDate: this.poll.expiryDate ? new Date(this.poll.expiryDate) : null,
+  //     questions: this.poll.questions.map((question) => {
+  //       // Soru tipini number'a çevir
+  //       const questionType = Number(question.type);
+
+  //       // Temizlenmiş soru objesi
+  //       const cleanedQuestion: any = {
+  //         id: question.id, // Mevcut ID'yi koru
+  //         text: question.text,
+  //         type: questionType,
+  //         orderIndex: question.orderIndex,
+  //         isRequired: question.isRequired,
+  //       };
+
+  //       // Sadece ilgili alanları ekle
+  //       switch (questionType) {
+  //         case QuestionType.MultipleChoice:
+  //           delete cleanedQuestion.maxSelections;
+
+  //           // options dizisini doğrudan atama
+  //           cleanedQuestion.options =
+  //             question.options?.map((option) => ({
+  //               id: option.id,
+  //               text: option.text,
+  //               orderIndex: option.orderIndex,
+  //             })) || [];
+  //           break;
+  //         case QuestionType.Ranking:
+  //           cleanedQuestion.maxSelections = question.maxSelections;
+  //           cleanedQuestion.options = question.options?.map((option) => ({
+  //             id: option.id, // Mevcut ID'yi koru
+  //             text: option.text,
+  //             orderIndex: option.orderIndex,
+  //           }));
+  //           break;
+
+  //         case QuestionType.Text:
+  //           // Metin sorusunda options ve maxSelections olmamalı
+  //           delete cleanedQuestion.maxSelections;
+  //           delete cleanedQuestion.options;
+  //           break;
+
+  //         case QuestionType.YesNo:
+  //           // Doğru/Yanlış sorusunda options gerekli değil
+  //           delete cleanedQuestion.options;
+  //           break;
+  //       }
+
+  //       return cleanedQuestion;
+  //     }),
+  //   };
+
+  //   console.log('Final payload:', JSON.stringify(payload));
+
+  //   this.pollService.updatePoll(this.pollId, payload).subscribe({
+  //     next: (response) => {
+  //       Swal.fire({
+  //         title: 'Başarılı!',
+  //         text: response.message,
+  //         icon: 'success',
+  //         timer: 1000,
+  //       });
+  //       this.router.navigate(['/poll-list']);
+  //       console.log('Payload:', JSON.stringify(payload, null, 2));
+  //     },
+  //     error: (err) => {
+  //       if (err.error && err.error.errors) {
+  //         console.log('Validation Errors:', err.error.errors);
+  //       }
+  //       Swal.fire({
+  //         title: 'Hata!',
+  //         text: err.error.message,
+  //         icon: 'error',
+  //         confirmButtonText: 'Kapat',
+  //       });
+  //     },
+  //   });
+  // }
+
   onSubmit(): void {
     if (!this.pollId) {
-      alert('Anket ID bulunamadı');
+      Swal.fire({
+        title: 'Hata!',
+        text: 'Anket Bulunamadı',
+        icon: 'error',
+        confirmButtonText: 'Kapat',
+      });
       return;
     }
 
-    // Deep copy oluştur ve veriyi formatla
-    const payload: PollUpdateDto = {
-      ...this.poll,
-      expiryDate: this.poll.expiryDate ? new Date(this.poll.expiryDate) : null,
-      questions: this.poll.questions.map((question) => {
-        // Soru tipini number'a çevir
-        const questionType = Number(question.type);
+    console.log('Original poll object:', JSON.stringify(this.poll, null, 2));
 
-        // Temizlenmiş soru objesi
-        const cleanedQuestion: any = {
-          id: question.id, // Mevcut ID'yi koru
+    // Tipini açıkça tanımlayalım
+    const payload: PollUpdateDto = {
+      title: this.poll.title,
+      description: this.poll.description,
+      expiryDate: this.poll.expiryDate ? new Date(this.poll.expiryDate) : null,
+      isActive: this.poll.isActive,
+      questions: [],
+    };
+
+    // Her soruyu işleyelim
+    for (const question of this.poll.questions) {
+      const questionType = Number(question.type);
+
+      // Soru tipine göre işlem yapalım
+      if (questionType === 3) {
+        // MultipleChoice
+        // Tüm gerekli alanları içeren bir soru nesnesi oluşturalım
+        const multipleChoiceQuestion = {
+          id: question.id,
+          text: question.text,
+          type: questionType,
+          orderIndex: question.orderIndex,
+          isRequired: question.isRequired,
+          options:
+            question.options?.map((option) => ({
+              id: option.id,
+              text: option.text,
+              orderIndex: option.orderIndex,
+            })) || [],
+        };
+
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(multipleChoiceQuestion);
+      } else if (questionType === 4) {
+        // Ranking
+        // Ranking sorusu için özel nesne
+        const rankingQuestion = {
+          id: question.id,
+          text: question.text,
+          type: questionType,
+          orderIndex: question.orderIndex,
+          isRequired: question.isRequired,
+          maxSelections: question.maxSelections,
+          options:
+            question.options?.map((option) => ({
+              id: option.id,
+              text: option.text,
+              orderIndex: option.orderIndex,
+            })) || [],
+        };
+
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(rankingQuestion);
+      } else if (questionType === 1) {
+        // Text
+        // Text sorusu için özel nesne
+        const textQuestion = {
+          id: question.id,
           text: question.text,
           type: questionType,
           orderIndex: question.orderIndex,
           isRequired: question.isRequired,
         };
 
-        // Sadece ilgili alanları ekle
-        switch (questionType) {
-          case QuestionType.MultipleChoice:
-          case QuestionType.Ranking:
-            cleanedQuestion.maxSelections = question.maxSelections;
-            cleanedQuestion.options = question.options?.map((option) => ({
-              id: option.id, // Mevcut ID'yi koru
-              text: option.text,
-              orderIndex: option.orderIndex,
-            }));
-            break;
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(textQuestion);
+      } else if (questionType === 2) {
+        // YesNo
+        // YesNo sorusu için özel nesne
+        const yesNoQuestion = {
+          id: question.id,
+          text: question.text,
+          type: questionType,
+          orderIndex: question.orderIndex,
+          isRequired: question.isRequired,
+        };
 
-          case QuestionType.Text:
-            // Metin sorusunda options ve maxSelections olmamalı
-            delete cleanedQuestion.maxSelections;
-            delete cleanedQuestion.options;
-            break;
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(yesNoQuestion);
+      } else if (questionType === 0) {
+        // Çoktan seçmeli (tek seçim)
+        const yesNoQuestion = {
+          id: question.id,
+          text: question.text,
+          type: questionType,
+          orderIndex: question.orderIndex,
+          isRequired: question.isRequired,
+        };
 
-          case QuestionType.YesNo:
-            // Doğru/Yanlış sorusunda options gerekli değil
-            delete cleanedQuestion.options;
-            break;
-        }
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(yesNoQuestion);
+      } else {
+        // Diğer soru tipleri için basic nesne
+        const basicQuestion = {
+          id: question.id,
+          text: question.text,
+          type: questionType,
+          orderIndex: question.orderIndex,
+          isRequired: question.isRequired,
+        };
 
-        return cleanedQuestion;
-      }),
-    };
+        // Soruyu payload'a ekleyelim
+        payload.questions.push(basicQuestion);
+      }
+    }
+
+    console.log('Final payload:', JSON.stringify(payload, null, 2));
 
     this.pollService.updatePoll(this.pollId, payload).subscribe({
       next: (response) => {
-        console.log('Güncelleme başarılı:', response);
+        Swal.fire({
+          title: 'Başarılı!',
+          text: response.message,
+          icon: 'success',
+          timer: 1000,
+        });
         this.router.navigate(['/poll-list']);
       },
       error: (err) => {
-        console.error('Hata Detayları:', err);
-        if (err.error) {
-          console.log('Sunucu Yanıtı:', err.error);
-          // Validasyon hatalarını göster
-          if (err.error.errors) {
-            const errorMessages = Object.values(err.error.errors).join('\n');
-            alert(`Validasyon hataları:\n${errorMessages}`);
-          }
+        if (err.error && err.error.errors) {
+          console.log('Validation Errors:', err.error.errors);
         }
-        alert('Hata: ' + (err.error?.title || err.message));
+        Swal.fire({
+          title: 'Hata!',
+          text: err.error.message || 'Bir hata oluştu',
+          icon: 'error',
+          confirmButtonText: 'Kapat',
+        });
       },
     });
   }
