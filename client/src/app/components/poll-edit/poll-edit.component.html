@@ -4,195 +4,199 @@
   <div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
     <h2 class="text-2xl font-bold mb-6 text-center">Anketi Düzenle</h2>
 
-    <form (ngSubmit)="onSubmit()" #pollForm="ngForm" class="space-y-6">
+    <form [formGroup]="pollForm" (ngSubmit)="onSubmit()" class="space-y-6">
       <!-- Anket Başlığı -->
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Anket Başlığı</mat-label>
-        <input
-          maxlength="50"
-          minlength="5"
-          [formControl]="titleFormControl"
-          matInput
-          type="text"
-          id="title"
-          name="title"
-          [(ngModel)]="poll.title"
-          required
-        />
-        <mat-error *ngIf="titleFormControl.hasError('required')">
+        <input matInput type="text" formControlName="title" />
+        <mat-error
+          *ngIf="pollForm.get('title')?.hasError('required')"
+          class="text-red-500"
+        >
           Başlık <strong>zorunlu</strong>
         </mat-error>
-        <mat-error *ngIf="titleFormControl.hasError('minlength')"
-          >En az 5 karakter</mat-error
+        <mat-error
+          *ngIf="pollForm.get('title')?.hasError('minlength')"
+          class="text-red-500"
+          >En az 5 karakter
+        </mat-error>
+        <mat-error
+          *ngIf="pollForm.get('title')?.hasError('maxlength')"
+          class="text-red-500"
         >
-        <mat-error *ngIf="titleFormControl.hasError('maxlength')"
-          >En fazla 50 karakter</mat-error
-        >
+          En fazla 50 karakter
+        </mat-error>
       </mat-form-field>
 
       <!-- Açıklama -->
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Açıklama</mat-label>
-        <textarea
-          matInput
-          id="description"
-          name="description"
-          [(ngModel)]="poll.description"
-        ></textarea>
+        <textarea matInput formControlName="description"></textarea>
+        <mat-error
+          *ngIf="pollForm.get('description')?.hasError('required')"
+          class="text-red-500"
+        >
+          Açıklama <strong>zorunlu</strong>
+        </mat-error>
+        <mat-error
+          *ngIf="pollForm.get('description')?.hasError('minlength')"
+          class="text-red-500"
+          >En az 10 karakter
+        </mat-error>
+        <mat-error
+          *ngIf="pollForm.get('description')?.hasError('maxlength')"
+          class="text-red-500"
+          >En fazla 1000 karakter
+        </mat-error>
       </mat-form-field>
 
       <!-- Bitiş Tarihi -->
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Bitiş Tarihi</mat-label>
-        <input
-          matInput
-          [matDatepicker]="picker"
-          id="expiryDate"
-          name="expiryDate"
-          [(ngModel)]="poll.expiryDate"
-        />
+        <input matInput [matDatepicker]="picker" formControlName="expiryDate" />
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
+        <mat-error
+          *ngIf="pollForm.get('expiryDate')?.hasError('required')"
+          class="text-red-500"
+        >
+          Bitiş tarihi <strong>zorunlu</strong>
+        </mat-error>
       </mat-form-field>
 
       <!-- Aktif Mi? -->
-      <mat-checkbox
-        id="isActive"
-        name="isActive"
-        [(ngModel)]="poll.isActive"
-        class="mt-2"
-      >
+      <mat-checkbox formControlName="isActive" class="mt-2">
         Aktif Mi?
       </mat-checkbox>
 
-      <!-- Sorular Bölümü - Daha belirgin stil -->
-      <div class="mt-8 mb-4">
+      <!-- Sorular Bölümü -->
+      <div class="mt-8 mb-4" formArrayName="questions">
         <h3
           class="text-xl font-bold text-purple-800 border-b-2 border-purple-500 pb-2"
         >
           Anket Soruları
         </h3>
-      </div>
 
-      <!-- Sorular -->
-      <div
-        *ngFor="let question of poll.questions; let i = index"
-        class="space-y-4 p-5 border-2 border-purple-300 rounded-lg bg-purple-50 shadow-md mb-6"
-      >
+        <!-- Sorular -->
         <div
-          class="flex justify-between items-center bg-purple-100 -m-5 mb-4 p-3 rounded-t-lg border-b border-purple-200"
+          *ngFor="let questionControl of questions.controls; let i = index"
+          [formGroupName]="i"
+          class="space-y-4 p-5 border-2 border-purple-300 rounded-lg bg-purple-50 shadow-md mb-6"
         >
-          <h3 class="text-lg font-semibold text-purple-800">
-            Soru {{ i + 1 }}
-          </h3>
-          <button
-            mat-icon-button
-            type="button"
-            (click)="removeQuestion(i)"
-            class="bg-red-50 hover:bg-red-100 rounded-full"
-          >
-            <mat-icon color="warn">delete</mat-icon>
-          </button>
-        </div>
-
-        <!-- Soru Metni -->
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Soru Metni</mat-label>
-          <input
-            matInput
-            [id]="'questionText' + i"
-            [name]="'questionText' + i"
-            [(ngModel)]="question.text"
-            required
-          />
-        </mat-form-field>
-
-        <!-- Soru Türü -->
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Soru Türü</mat-label>
-          <mat-select
-            [id]="'questionType' + i"
-            [name]="'questionType' + i"
-            [(ngModel)]="question.type"
-          >
-            <mat-option [value]="0">Tek Seçim</mat-option>
-            <mat-option [value]="1">Metin</mat-option>
-            <mat-option [value]="2">Doğru Yanlış</mat-option>
-            <mat-option [value]="3">Çoklu Seçim</mat-option>
-            <mat-option [value]="4">Sıralama</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <!-- Zorunlu Mu? -->
-        <mat-checkbox
-          [id]="'isRequired' + i"
-          [name]="'isRequired' + i"
-          [(ngModel)]="question.isRequired"
-          class="ml-1"
-        >
-          <span class="font-medium">Zorunlu Mu?</span>
-        </mat-checkbox>
-
-        <!-- Maksimum Seçim Sayısı -->
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Maksimum Seçim Sayısı</mat-label>
-          <input
-            matInput
-            type="number"
-            [id]="'maxSelections' + i"
-            [name]="'maxSelections' + i"
-            [(ngModel)]="question.maxSelections"
-          />
-        </mat-form-field>
-
-        <!-- Seçenekler Bölümü - Belirgin başlık -->
-        <div class="bg-blue-50 rounded-md p-3 mt-4 border border-blue-200">
-          <h4
-            class="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2"
-          >
-            Soru Seçenekleri
-          </h4>
-
-          <!-- Seçenekler -->
           <div
-            *ngFor="let option of question.options; let j = index"
-            class="space-y-2 p-3 mb-3 border border-blue-100 rounded-md bg-white"
+            class="flex justify-between items-center bg-purple-100 -m-5 mb-4 p-3 rounded-t-lg border-b border-purple-200"
           >
-            <div class="flex justify-between items-center">
-              <h4 class="text-md font-medium text-blue-600">
-                Seçenek {{ j + 1 }}
-              </h4>
-              <button
-                mat-icon-button
-                type="button"
-                (click)="removeOption(i, j)"
-                class="bg-red-50 hover:bg-red-100 rounded-full h-8 w-8 flex items-center justify-center"
-              >
-                <mat-icon color="warn" class="text-sm">delete</mat-icon>
-              </button>
-            </div>
-            <mat-form-field appearance="fill" class="w-full">
-              <mat-label>Seçenek Metni</mat-label>
-              <input
-                matInput
-                [id]="'optionText' + i + '-' + j"
-                [name]="'optionText' + i + '-' + j"
-                [(ngModel)]="option.text"
-                required
-              />
-            </mat-form-field>
+            <h3 class="text-lg font-semibold text-purple-800">
+              Soru {{ i + 1 }}
+            </h3>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeQuestion(i)"
+              class="bg-red-50 hover:bg-red-100 rounded-full"
+            >
+              <mat-icon color="warn">delete</mat-icon>
+            </button>
           </div>
 
-          <!-- Seçenek Ekle Butonu -->
-          <button
-            mat-button
-            type="button"
-            (click)="addOption(i)"
-            class="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
+          <!-- Soru Metni -->
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Soru Metni</mat-label>
+            <input matInput formControlName="text" />
+            <mat-error
+              *ngIf="questionControl.get('text')?.hasError('required')"
+              class="text-red-500"
+            >
+              Soru metni <strong>zorunlu</strong>
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Soru Türü -->
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Soru Türü</mat-label>
+            <mat-select formControlName="type">
+              <mat-option
+                *ngFor="let type of questionTypes"
+                [value]="type.value"
+              >
+                {{ type.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Zorunlu Mu? -->
+          <mat-checkbox formControlName="isRequired" class="ml-1">
+            <span class="font-medium">Zorunlu Mu?</span>
+          </mat-checkbox>
+
+          <!-- Maksimum Seçim Sayısı -->
+          <mat-form-field
+            *ngIf="shouldShowMaxSelections(questionControl.get('type')?.value)"
+            appearance="fill"
+            class="w-full"
           >
-            <mat-icon class="mr-1">add_circle</mat-icon>
-            Seçenek Ekle
-          </button>
+            <mat-label>Maksimum Seçim Sayısı</mat-label>
+            <input matInput type="number" formControlName="maxSelections" />
+          </mat-form-field>
+
+          <!-- Seçenekler Bölümü -->
+          <div
+            *ngIf="shouldShowOptions(questionControl.get('type')?.value)"
+            class="bg-blue-50 rounded-md p-3 mt-4 border border-blue-200"
+          >
+            <h4
+              class="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2"
+            >
+              Soru Seçenekleri
+            </h4>
+
+            <!-- Seçenekler -->
+            <div formArrayName="options">
+              <div
+                *ngFor="
+                  let optionControl of getOptions(i).controls;
+                  let j = index
+                "
+                [formGroupName]="j"
+                class="space-y-2 p-3 mb-3 border border-blue-100 rounded-md bg-white"
+              >
+                <div class="flex justify-between items-center">
+                  <h4 class="text-md font-medium text-blue-600">
+                    Seçenek {{ j + 1 }}
+                  </h4>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeOption(i, j)"
+                    class="bg-red-50 hover:bg-red-100 rounded-full h-8 w-8 flex items-center justify-center"
+                  >
+                    <mat-icon color="warn" class="text-sm">delete</mat-icon>
+                  </button>
+                </div>
+                <mat-form-field appearance="fill" class="w-full">
+                  <mat-label>Seçenek Metni</mat-label>
+                  <input matInput formControlName="text" />
+                  <mat-error
+                    *ngIf="optionControl.get('text')?.hasError('required')"
+                    class="text-red-500"
+                  >
+                    Seçenek metni <strong>zorunlu</strong>
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Seçenek Ekle Butonu -->
+            <button
+              mat-button
+              type="button"
+              (click)="addOption(i)"
+              class="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
+            >
+              <mat-icon class="mr-1">add_circle</mat-icon>
+              Seçenek Ekle
+            </button>
+          </div>
         </div>
       </div>
 
@@ -213,7 +217,7 @@
         mat-raised-button
         type="submit"
         color="accent"
-        [disabled]="!pollForm.form.valid"
+        [disabled]="pollForm.invalid"
         class="w-full py-3 mt-8 bg-green-600 hover:bg-green-700"
       >
         <mat-icon class="mr-2">save</mat-icon>

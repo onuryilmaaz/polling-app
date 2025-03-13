@@ -7,12 +7,11 @@ import {
   QuestionType,
 } from '../../models/poll.models';
 import {
-  FormControl,
   Validators,
-  FormsModule,
   ReactiveFormsModule,
   FormGroup,
   FormBuilder,
+  FormArray,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,7 +28,6 @@ import Swal from 'sweetalert2';
   selector: 'app-poll-edit',
   standalone: true,
   imports: [
-    FormsModule,
     CommonModule,
     MatFormFieldModule,
     MatDatepickerModule,
@@ -46,22 +44,15 @@ import Swal from 'sweetalert2';
 })
 export class PollEditComponent implements OnInit {
   pollId: number | null = null;
-  poll: PollUpdateDto = {
-    title: '',
-    description: '',
-    expiryDate: undefined,
-    isActive: true,
-    questions: [],
-  };
-  form!: FormGroup;
+  pollForm!: FormGroup;
   fb = inject(FormBuilder);
-
-  //formControl
-  titleFormControl = new FormControl('', [
-    Validators.required,
-    Validators.maxLength(50),
-    Validators.minLength(5),
-  ]);
+  questionTypes = [
+    { value: 0, label: 'Tek Seçim' },
+    { value: 1, label: 'Metin' },
+    { value: 2, label: 'Doğru Yanlış' },
+    { value: 3, label: 'Çoklu Seçim' },
+    { value: 4, label: 'Sıralama' },
+  ];
 
   constructor(
     private pollService: PollService,
@@ -70,6 +61,8 @@ export class PollEditComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.initForm();
+
     // Get the poll ID from the route
     this.route.paramMap.subscribe((params) => {
       const idParam = params.get('id');
@@ -80,294 +73,211 @@ export class PollEditComponent implements OnInit {
     });
   }
 
+  initForm(): void {
+    this.pollForm = this.fb.group({
+      title: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(5),
+          Validators.maxLength(50),
+        ],
+      ],
+      description: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(10),
+          Validators.maxLength(1000),
+        ],
+      ],
+      expiryDate: ['', Validators.required],
+      isActive: [true],
+      questions: this.fb.array([]),
+    });
+  }
+
+  // Get questions as FormArray
+  get questions(): FormArray {
+    return this.pollForm.get('questions') as FormArray;
+  }
+
+  // Create a question form group
+  createQuestionGroup(question: any = null): FormGroup {
+    const formGroup = this.fb.group({
+      id: [question?.id || null],
+      text: [question?.text || '', Validators.required],
+      type: [question?.type || QuestionType.YesNo, Validators.required],
+      orderIndex: [question?.orderIndex || 0],
+      isRequired: [question?.isRequired || false],
+      maxSelections: [question?.maxSelections || null],
+      options: this.fb.array([]),
+    });
+
+    // Add options if they exist
+    if (question?.options && question.options.length > 0) {
+      const optionsArray = formGroup.get('options') as FormArray;
+      question.options.forEach((option: any) => {
+        optionsArray.push(this.createOptionGroup(option));
+      });
+    }
+
+    return formGroup;
+  }
+
+  // Create an option form group
+  createOptionGroup(option: any = null): FormGroup {
+    return this.fb.group({
+      id: [option?.id || null],
+      text: [option?.text || '', Validators.required],
+      orderIndex: [option?.orderIndex || 0],
+    });
+  }
+
+  // Get options for a specific question
+  getOptions(questionIndex: number): FormArray {
+    return this.questions.at(questionIndex).get('options') as FormArray;
+  }
+
   // Load poll details for editing
   loadPollDetails(): void {
     if (this.pollId) {
       this.pollService.getPollById(this.pollId).subscribe({
         next: (pollDetail: PollDetailDto) => {
           console.log('Loaded poll details:', pollDetail);
-          // Map the retrieved poll details to the update DTO
-          this.poll = {
+
+          // Reset form with new data
+          this.pollForm.patchValue({
             title: pollDetail.title,
             description: pollDetail.description || '',
             expiryDate: pollDetail.expiryDate
               ? new Date(pollDetail.expiryDate)
-              : undefined,
+              : null,
             isActive: pollDetail.isActive,
-            questions: pollDetail.questions.map((q) => ({
-              id: q.id, // Include existing question ID
-              text: q.text,
-              type: q.type,
-              orderIndex: q.orderIndex,
-              isRequired: q.isRequired,
-              maxSelections: q.maxSelections,
-              options: q.options?.map((option) => ({
-                id: option.id, // Include existing option ID
-                text: option.text,
-                orderIndex: option.orderIndex,
-              })),
-            })),
-          };
+          });
+
+          // Clear questions array and add each question
+          this.questions.clear();
+          pollDetail.questions.forEach((question) => {
+            this.questions.push(this.createQuestionGroup(question));
+          });
         },
         error: (err) => {
           console.error('Anket yüklenirken hata oluştu:', err);
-          alert('Anket yüklenemedi: ' + err.message);
+          Swal.fire({
+            title: 'Hata!',
+            text: 'Anket yüklenemedi: ' + err.message,
+            icon: 'error',
+            confirmButtonText: 'Kapat',
+          });
           this.router.navigate(['/poll-list']);
         },
       });
     }
   }
 
-  // Yeni soru ekleme (var olan poll-create ile aynı)
+  // Add a new question
   addQuestion(): void {
-    this.poll.questions.push({
-      text: '',
-      type: QuestionType.YesNo,
-      orderIndex: this.poll.questions.length,
-      isRequired: false,
-      maxSelections: undefined,
-      options: [],
-    });
-  }
-
-  // Soruya yeni seçenek ekleme
-  addOption(questionIndex: number): void {
-    this.poll.questions[questionIndex].options?.push({
-      text: '',
-      orderIndex: this.poll.questions[questionIndex].options?.length ?? 0,
-    });
-  }
-
-  // Soru silme metodu
-  removeQuestion(index: number): void {
-    // İlgili indeksteki soruyu kaldır
-    this.poll.questions.splice(index, 1);
-    // Kalan soruların orderIndex değerlerini güncelle
-    this.poll.questions.forEach((q, i) => (q.orderIndex = i));
-  }
-
-  // Seçenek silme metodu
-  removeOption(questionIndex: number, optionIndex: number): void {
-    // İlgili sorunun options dizisinden, belirli index'teki seçeneği kaldır
-    this.poll.questions[questionIndex].options?.splice(optionIndex, 1);
-    // Kalan seçeneklerin orderIndex değerlerini güncelle
-    this.poll.questions[questionIndex].options?.forEach(
-      (option, i) => (option.orderIndex = i)
+    this.questions.push(
+      this.createQuestionGroup({
+        text: '',
+        type: QuestionType.YesNo,
+        orderIndex: this.questions.length,
+        isRequired: false,
+        options: [],
+      })
     );
   }
 
-  // onSubmit(): void {
-  //   if (!this.pollId) {
-  //     Swal.fire({
-  //       title: 'Hata!',
-  //       text: 'Anket Bulunamadı',
-  //       icon: 'error',
-  //       confirmButtonText: 'Kapat',
-  //     });
-  //     return;
-  //   }
-  //   console.log('Original poll object:', JSON.stringify(this.poll, null, 2));
+  // Add a new option to a question
+  addOption(questionIndex: number): void {
+    const options = this.getOptions(questionIndex);
+    options.push(
+      this.createOptionGroup({
+        text: '',
+        orderIndex: options.length,
+      })
+    );
+  }
 
-  //   // Deep copy oluştur ve veriyi formatla
-  //   const payload: PollUpdateDto = {
-  //     ...this.poll,
-  //     expiryDate: this.poll.expiryDate ? new Date(this.poll.expiryDate) : null,
-  //     questions: this.poll.questions.map((question) => {
-  //       // Soru tipini number'a çevir
-  //       const questionType = Number(question.type);
+  // Remove a question
+  removeQuestion(index: number): void {
+    this.questions.removeAt(index);
 
-  //       // Temizlenmiş soru objesi
-  //       const cleanedQuestion: any = {
-  //         id: question.id, // Mevcut ID'yi koru
-  //         text: question.text,
-  //         type: questionType,
-  //         orderIndex: question.orderIndex,
-  //         isRequired: question.isRequired,
-  //       };
+    // Update orderIndex for remaining questions
+    for (let i = 0; i < this.questions.length; i++) {
+      this.questions.at(i).get('orderIndex')?.setValue(i);
+    }
+  }
 
-  //       // Sadece ilgili alanları ekle
-  //       switch (questionType) {
-  //         case QuestionType.MultipleChoice:
-  //           delete cleanedQuestion.maxSelections;
+  // Remove an option
+  removeOption(questionIndex: number, optionIndex: number): void {
+    const options = this.getOptions(questionIndex);
+    options.removeAt(optionIndex);
 
-  //           // options dizisini doğrudan atama
-  //           cleanedQuestion.options =
-  //             question.options?.map((option) => ({
-  //               id: option.id,
-  //               text: option.text,
-  //               orderIndex: option.orderIndex,
-  //             })) || [];
-  //           break;
-  //         case QuestionType.Ranking:
-  //           cleanedQuestion.maxSelections = question.maxSelections;
-  //           cleanedQuestion.options = question.options?.map((option) => ({
-  //             id: option.id, // Mevcut ID'yi koru
-  //             text: option.text,
-  //             orderIndex: option.orderIndex,
-  //           }));
-  //           break;
+    // Update orderIndex for remaining options
+    for (let i = 0; i < options.length; i++) {
+      options.at(i).get('orderIndex')?.setValue(i);
+    }
+  }
 
-  //         case QuestionType.Text:
-  //           // Metin sorusunda options ve maxSelections olmamalı
-  //           delete cleanedQuestion.maxSelections;
-  //           delete cleanedQuestion.options;
-  //           break;
+  // Whether to show options for a question type
+  shouldShowOptions(type: number): boolean {
+    return type === 0 || type === 3 || type === 4;
+  }
 
-  //         case QuestionType.YesNo:
-  //           // Doğru/Yanlış sorusunda options gerekli değil
-  //           delete cleanedQuestion.options;
-  //           break;
-  //       }
-
-  //       return cleanedQuestion;
-  //     }),
-  //   };
-
-  //   console.log('Final payload:', JSON.stringify(payload));
-
-  //   this.pollService.updatePoll(this.pollId, payload).subscribe({
-  //     next: (response) => {
-  //       Swal.fire({
-  //         title: 'Başarılı!',
-  //         text: response.message,
-  //         icon: 'success',
-  //         timer: 1000,
-  //       });
-  //       this.router.navigate(['/poll-list']);
-  //       console.log('Payload:', JSON.stringify(payload, null, 2));
-  //     },
-  //     error: (err) => {
-  //       if (err.error && err.error.errors) {
-  //         console.log('Validation Errors:', err.error.errors);
-  //       }
-  //       Swal.fire({
-  //         title: 'Hata!',
-  //         text: err.error.message,
-  //         icon: 'error',
-  //         confirmButtonText: 'Kapat',
-  //       });
-  //     },
-  //   });
-  // }
+  // Whether to show maxSelections for a question type
+  shouldShowMaxSelections(type: number): boolean {
+    return type === 4;
+  }
 
   onSubmit(): void {
-    if (!this.pollId) {
+    if (!this.pollId || this.pollForm.invalid) {
       Swal.fire({
         title: 'Hata!',
-        text: 'Anket Bulunamadı',
+        text: this.pollId
+          ? 'Form geçersiz. Lütfen tüm alanları kontrol edin.'
+          : 'Anket Bulunamadı',
         icon: 'error',
         confirmButtonText: 'Kapat',
       });
       return;
     }
 
-    console.log('Original poll object:', JSON.stringify(this.poll, null, 2));
+    const formValue = this.pollForm.value;
+    console.log('Form value:', formValue);
 
-    // Tipini açıkça tanımlayalım
+    // Prepare the payload
     const payload: PollUpdateDto = {
-      title: this.poll.title,
-      description: this.poll.description,
-      expiryDate: this.poll.expiryDate ? new Date(this.poll.expiryDate) : null,
-      isActive: this.poll.isActive,
+      title: formValue.title,
+      description: formValue.description,
+      expiryDate: formValue.expiryDate ? new Date(formValue.expiryDate) : null,
+      isActive: formValue.isActive,
       questions: [],
     };
 
-    // Her soruyu işleyelim
-    for (const question of this.poll.questions) {
+    // Process each question based on its type
+    formValue.questions.forEach((question: any) => {
       const questionType = Number(question.type);
+      let processedQuestion: any = {
+        id: question.id,
+        text: question.text,
+        type: questionType,
+        orderIndex: question.orderIndex,
+        isRequired: question.isRequired,
+      };
 
-      // Soru tipine göre işlem yapalım
-      if (questionType === 3) {
-        // MultipleChoice
-        // Tüm gerekli alanları içeren bir soru nesnesi oluşturalım
-        const multipleChoiceQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-          options:
-            question.options?.map((option) => ({
-              id: option.id,
-              text: option.text,
-              orderIndex: option.orderIndex,
-            })) || [],
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(multipleChoiceQuestion);
-      } else if (questionType === 4) {
-        // Ranking
-        // Ranking sorusu için özel nesne
-        const rankingQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-          maxSelections: question.maxSelections,
-          options:
-            question.options?.map((option) => ({
-              id: option.id,
-              text: option.text,
-              orderIndex: option.orderIndex,
-            })) || [],
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(rankingQuestion);
-      } else if (questionType === 1) {
-        // Text
-        // Text sorusu için özel nesne
-        const textQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(textQuestion);
-      } else if (questionType === 2) {
-        // YesNo
-        // YesNo sorusu için özel nesne
-        const yesNoQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(yesNoQuestion);
-      } else if (questionType === 0) {
-        // Çoktan seçmeli (tek seçim)
-        const yesNoQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(yesNoQuestion);
-      } else {
-        // Diğer soru tipleri için basic nesne
-        const basicQuestion = {
-          id: question.id,
-          text: question.text,
-          type: questionType,
-          orderIndex: question.orderIndex,
-          isRequired: question.isRequired,
-        };
-
-        // Soruyu payload'a ekleyelim
-        payload.questions.push(basicQuestion);
+      // Add type-specific properties
+      if (this.shouldShowOptions(questionType)) {
+        processedQuestion.options = question.options;
       }
-    }
+
+      if (this.shouldShowMaxSelections(questionType)) {
+        processedQuestion.maxSelections = question.maxSelections;
+      }
+
+      payload.questions.push(processedQuestion);
+    });
 
     console.log('Final payload:', JSON.stringify(payload, null, 2));
 
