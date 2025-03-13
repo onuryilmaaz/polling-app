@@ -294,6 +294,152 @@ public class PollController : ControllerBase
     }
     #endregion
 
+    #region Anket Sonuçları
+    [HttpGet("results/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPollResults(int id)
+    {
+        try
+        {
+            var poll = await _context.Polls
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Include(p => p.Responses)
+                    .ThenInclude(r => r.Answers)
+                        .ThenInclude(a => a.SelectedOptions)
+                            .ThenInclude(so => so.Option)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (poll == null)
+            {
+                return NotFound("Anket bulunamadı.");
+            }
+
+            // Kullanıcı kimliğini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            if (!Guid.TryParse(userIdClaim.Value, out Guid userId))
+            {
+                return Unauthorized("Geçersiz kullanıcı kimliği.");
+            }
+
+            // Anketi oluşturan kişi mi kontrol et
+            if (Guid.TryParse(poll.CreatedByUserId, out Guid creatorId) && creatorId != userId)
+            {
+                return Forbid("Bu anketin sonuçlarını görüntülemeye yetkiniz yok.");
+            }
+
+            var totalResponses = poll.Responses.Count;
+
+            var results = new
+            {
+                PollId = poll.Id,
+                Title = poll.Title,
+                Description = poll.Description,
+                CreatedDate = poll.CreatedDate,
+                ExpiryDate = poll.ExpiryDate,
+                IsActive = poll.IsActive,
+                TotalResponses = totalResponses,
+                Questions = poll.Questions.OrderBy(q => q.OrderIndex).Select(q =>
+                {
+                    var questionResults = new
+                    {
+                        QuestionId = q.Id,
+                        Text = q.Text,
+                        Type = q.Type.ToString(),
+                        MaxSelections = q.MaxSelections,
+                        IsRequired = q.IsRequired,
+                        TotalAnswers = poll.Responses.Count(r => r.Answers.Any(a => a.QuestionId == q.Id)),
+
+                        // For non-text questions, show option results
+                        Options = q.Type != QuestionType.Text ? q.Options.OrderBy(o => o.OrderIndex).Select(o =>
+                        {
+                            var selectedCount = poll.Responses
+                                .SelectMany(r => r.Answers)
+                                .Where(a => a.QuestionId == q.Id)
+                                .SelectMany(a => a.SelectedOptions)
+                                .Count(so => so.OptionId == o.Id);
+
+                            double percentage = totalResponses > 0 ? (double)selectedCount / totalResponses * 100 : 0;
+
+                            return new
+                            {
+                                OptionId = o.Id,
+                                Text = o.Text,
+                                Count = selectedCount,
+                                Percentage = Math.Round(percentage, 2)
+                            };
+                        }).ToList() : null,
+
+                        // Only for text questions, collect text answers
+                        TextAnswers = q.Type == QuestionType.Text ? poll.Responses
+                            .SelectMany(r => r.Answers)
+                            .Where(a => a.QuestionId == q.Id && !string.IsNullOrEmpty(a.TextAnswer))
+                            .Select(a => a.TextAnswer)
+                            .ToList() : null,
+
+                        // For ranking questions, show rank distribution
+                        RankingResults = q.Type == QuestionType.Ranking ? q.Options.OrderBy(o => o.OrderIndex).Select(o =>
+                        {
+                            var rankCounts = poll.Responses
+                                .SelectMany(r => r.Answers)
+                                .Where(a => a.QuestionId == q.Id)
+                                .SelectMany(a => a.SelectedOptions)
+                                .Where(so => so.OptionId == o.Id && so.RankOrder.HasValue)
+                                .GroupBy(so => so.RankOrder.Value)
+                                .Select(g => new { Rank = g.Key, Count = g.Count() })
+                                .OrderBy(x => x.Rank)
+                                .ToList();
+
+                            return new
+                            {
+                                OptionId = o.Id,
+                                Text = o.Text,
+                                RankDistribution = rankCounts
+                            };
+                        }).ToList() : null,
+
+                        // For MultiSelect questions, show selection frequencies
+                        MultiSelectResults = q.Type == QuestionType.MultiSelect ? new
+                        {
+                            SelectionCounts = q.Options.OrderBy(o => o.OrderIndex).Select(o =>
+                            {
+                                var count = poll.Responses
+                                    .SelectMany(r => r.Answers)
+                                    .Where(a => a.QuestionId == q.Id)
+                                    .SelectMany(a => a.SelectedOptions)
+                                    .Count(so => so.OptionId == o.Id);
+
+                                double percentage = totalResponses > 0 ? (double)count / totalResponses * 100 : 0;
+
+                                return new
+                                {
+                                    OptionId = o.Id,
+                                    Text = o.Text,
+                                    Count = count,
+                                    Percentage = Math.Round(percentage, 2)
+                                };
+                            }).ToList()
+                        } : null
+                    };
+
+                    return questionResults;
+                }).ToList()
+            };
+
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket sonuçları alınırken bir hata oluştu: {ex.Message}");
+        }
+    }
+    #endregion
+
     #region Anket Aktif-Pasif
     [HttpDelete("toogle/{id}")]
     [Authorize(Roles = "Admin")]

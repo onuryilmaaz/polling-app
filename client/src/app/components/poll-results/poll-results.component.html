@@ -1,0 +1,126 @@
+<!-- poll-results.component.html -->
+<div *ngIf="loading" class="p-4 text-center text-gray-600">Loading...</div>
+<div *ngIf="error" class="p-4 text-center text-red-600">{{ error }}</div>
+
+<div *ngIf="poll" class="max-w-3xl mx-auto p-4 space-y-8">
+  <div class="space-y-2">
+    <h2 class="text-3xl font-bold text-gray-800">{{ poll.title }}</h2>
+    <p class="text-gray-600">{{ poll.description }}</p>
+
+    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+      <div>
+        <p class="text-sm font-medium text-gray-500">Total Responses</p>
+        <p class="text-2xl font-bold text-gray-800">
+          {{ poll.totalResponses }}
+        </p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Expiry Date</p>
+        <p class="text-gray-800">{{ formatExpiryDate(poll.expiryDate) }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngFor="let question of poll.questions"
+    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+  >
+    <h3 class="text-lg font-medium text-gray-800 mb-4">{{ question.text }}</h3>
+
+    <!-- Text Question -->
+    <div *ngIf="isTextQuestion(question)" class="space-y-3">
+      <h4 class="text-sm font-medium text-gray-500">
+        Text Responses ({{ question.totalAnswers }})
+      </h4>
+      <ul class="space-y-2">
+        <li
+          *ngFor="let answer of question.textAnswers"
+          class="bg-gray-50 p-3 rounded-lg text-gray-700 text-sm"
+        >
+          {{ answer }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Multiple Choice/YesNo -->
+    <div
+      *ngIf="question.type === 'MultipleChoice' || question.type === 'YesNo'"
+      class="space-y-4"
+    >
+      <div *ngFor="let option of question.options" class="space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-700">{{ option.text }}</span>
+          <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div
+            class="bg-green-500 h-2 rounded-full"
+            [style.width.%]="option.percentage"
+          ></div>
+        </div>
+        <div class="text-xs text-gray-500 text-right">
+          {{ option.count }} responses
+        </div>
+      </div>
+    </div>
+
+    <!-- MultiSelect -->
+    <div *ngIf="question.type === 'MultiSelect'" class="space-y-4">
+      <div
+        *ngFor="let option of question.multiSelectResults.selectionCounts"
+        class="space-y-1"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-700">{{ option.text }}</span>
+          <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div
+            class="bg-blue-500 h-2 rounded-full"
+            [style.width.%]="option.percentage"
+          ></div>
+        </div>
+        <div class="text-xs text-gray-500 text-right">
+          {{ option.count }} selections
+        </div>
+      </div>
+    </div>
+
+    <!-- Ranking -->
+    <div *ngIf="question.type === 'Ranking'" class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">
+              Option
+            </th>
+            <th
+              *ngFor="
+                let rank of [].constructor(question.maxSelections);
+                let i = index
+              "
+              class="px-4 py-2 text-center text-sm font-medium text-gray-500"
+            >
+              Rank {{ i + 1 }}
+            </th>
+            <th class="px-4 py-2 text-center text-sm font-medium text-gray-500">
+              Toplam
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let option of question.rankingResults">
+            <td class="px-4 py-3 text-sm text-gray-700">{{ option.text }}</td>
+            <td
+              *ngFor="let rank of getRankColumns(question)"
+              class="px-4 py-3 text-center text-sm text-gray-600"
+            >
+              {{ getRankCount(option.rankDistribution, rank) || "-" }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700 text-center">5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

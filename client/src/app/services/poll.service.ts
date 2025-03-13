@@ -21,7 +21,6 @@ export class PollService {
 
   // Anket oluşturma
   createPoll(pollDto: PollCreateDto): Observable<any> {
-    console.log('Gönderilen Veri:', JSON.stringify(pollDto, null, 2));
     return this.http.post(`${this.apiUrl}poll/create`, pollDto, {
       headers: this.getHeaders(),
     });
@@ -32,6 +31,11 @@ export class PollService {
     return this.http.put(`${this.apiUrl}poll/update/${id}`, pollDto, {
       headers: this.getHeaders(),
     });
+  }
+
+  //Anket Sonuçları
+  getPollResults(id: number) {
+    return this.http.get<any>(`${this.apiUrl}poll/results/${id}`);
   }
 
   // Anket toggle

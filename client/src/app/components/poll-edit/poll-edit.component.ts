@@ -107,7 +107,10 @@ export class PollEditComponent implements OnInit {
     const formGroup = this.fb.group({
       id: [question?.id || null],
       text: [question?.text || '', Validators.required],
-      type: [question?.type || QuestionType.YesNo, Validators.required],
+      type: [
+        question?.type || QuestionType.MultipleChoice,
+        Validators.required,
+      ],
       orderIndex: [question?.orderIndex || 0],
       isRequired: [question?.isRequired || false],
       maxSelections: [question?.maxSelections || null],
@@ -144,8 +147,6 @@ export class PollEditComponent implements OnInit {
     if (this.pollId) {
       this.pollService.getPollById(this.pollId).subscribe({
         next: (pollDetail: PollDetailDto) => {
-          console.log('Loaded poll details:', pollDetail);
-
           // Reset form with new data
           this.pollForm.patchValue({
             title: pollDetail.title,
@@ -245,7 +246,6 @@ export class PollEditComponent implements OnInit {
     }
 
     const formValue = this.pollForm.value;
-    console.log('Form value:', formValue);
 
     // Prepare the payload
     const payload: PollUpdateDto = {
@@ -278,8 +278,6 @@ export class PollEditComponent implements OnInit {
 
       payload.questions.push(processedQuestion);
     });
-
-    console.log('Final payload:', JSON.stringify(payload, null, 2));
 
     this.pollService.updatePoll(this.pollId, payload).subscribe({
       next: (response) => {

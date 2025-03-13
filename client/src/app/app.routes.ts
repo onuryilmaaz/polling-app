@@ -9,6 +9,7 @@ import { PollCreateComponent } from './components/poll-create/poll-create.compon
 import { PollDetailComponent } from './components/poll-detail/poll-detail.component';
 import { AdminPollListComponent } from './components/admin-poll-list/admin-poll-list.component';
 import { PollEditComponent } from './components/poll-edit/poll-edit.component';
+import { PollResultsComponent } from './components/poll-results/poll-results.component';
 
 export const routes: Routes = [
   {
@@ -46,6 +47,12 @@ export const routes: Routes = [
   {
     path: 'poll-edit/:id',
     component: PollEditComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] },
+  },
+  {
+    path: 'poll-results/:id',
+    component: PollResultsComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] },
   },

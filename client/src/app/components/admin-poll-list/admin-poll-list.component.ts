@@ -23,8 +23,6 @@ export class AdminPollListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadActivePolls();
-    this.checkPollExpirations();
-
     // Her 1 saatte bir kontrol et
     setInterval(() => {
       this.checkPollExpirations();
