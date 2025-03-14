@@ -11,7 +11,7 @@
     <!-- Error state -->
     <div *ngIf="errorMessage && !isLoading" class="rounded-md mb-4">
       <!-- Already submitted state -->
-      @if(!isSubmitting){
+      @if(isSubmitting){
       <div
         *ngIf="!isLoading && errorMessage"
         class="p-4 bg-green-100 text-green-700 rounded-md mb-4"
