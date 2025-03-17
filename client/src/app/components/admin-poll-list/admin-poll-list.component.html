@@ -14,9 +14,10 @@
           'opacity-50 bg-gray-100': isPollExpired(poll),
           'bg-white': !isPollExpired(poll)
         }"
+        style="width: 900px"
         class="shadow-md rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center"
       >
-        <div class="flex-1">
+        <div class="flex-grow truncate">
           <h3
             [ngClass]="{
               'line-through text-gray-500': isPollExpired(poll),
@@ -26,12 +27,22 @@
           >
             {{ poll.id }}-{{ poll.title }}
           </h3>
-          <p class="text-gray-600 text-sm mb-1">{{ poll.description }}</p>
+          <p class="text-gray-600 text-sm mb-3">
+            {{ poll.description }}
+          </p>
           <p class="text-sm text-gray-500">
             Soru Sayısı: {{ poll.questionCount }}
           </p>
           <p class="text-sm text-gray-500">
             Cevap Sayısı: {{ poll.responseCount }}
+          </p>
+          <p class="text-sm text-gray-500">
+            Cevap Sayısı:
+            {{
+              poll.newCategoryName == null
+                ? "Kategori Yok"
+                : poll.newCategoryName
+            }}
           </p>
           <p class="text-sm text-gray-500">
             Anketin Bitiş Tarihi: {{ formatExpiryDate(poll.expiryDate) }}

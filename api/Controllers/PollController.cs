@@ -35,6 +35,19 @@ public class PollController : ControllerBase
 
             Guid userId = Guid.Parse(userIdClaim.Value);
 
+            // Kategori kontrolü
+            if (pollDto.CategoryId == null)
+            {
+                return BadRequest("Bir kategori seçilmelidir.");
+            }
+
+            // Seçilen kategorinin varlığını kontrol et
+            var category = await _context.PollCategories.FindAsync(pollDto.CategoryId);
+            if (category == null)
+            {
+                return BadRequest("Seçilen kategori bulunamadı.");
+            }
+
             // Yeni anket oluştur
             var poll = new Poll
             {
@@ -44,7 +57,8 @@ public class PollController : ControllerBase
                 ExpiryDate = pollDto.ExpiryDate,
                 IsActive = pollDto.IsActive,
                 CreatedByUserId = userId.ToString(),
-                Questions = new List<Question>()
+                Questions = new List<Question>(),
+                CategoryId = pollDto.CategoryId
             };
 
             // Soruları ekle
@@ -100,6 +114,8 @@ public class PollController : ControllerBase
             {
                 id = poll.Id,
                 title = poll.Title,
+                categoryId = poll.CategoryId,
+                categoryName = category.Name,
                 questions = poll.Questions.Select(q => new
                 {
                     q.Id,
@@ -506,6 +522,8 @@ public class PollController : ControllerBase
                     CreatedDate = s.CreatedDate,
                     ExpiryDate = s.ExpiryDate,
                     IsActive = s.IsActive,
+                    CategoryId = s.CategoryId,
+                    NewCategoryName = s.Category.Name,
                     Questions = s.Questions != null
                         ? s.Questions.Select(q => new QuestionDetailDto
                         {
@@ -710,6 +728,8 @@ public class PollController : ControllerBase
                     Description = s.Description,
                     CreatedDate = s.CreatedDate,
                     ExpiryDate = s.ExpiryDate,
+                    CategoryId = s.CategoryId,
+                    NewCategoryName = s.Category.Name,
                     QuestionCount = s.Questions != null ? s.Questions.Count : 0,
                     ResponseCount = s.Responses != null ? s.Responses.Count : 0
                 })
@@ -722,7 +742,9 @@ public class PollController : ControllerBase
             return StatusCode(500, $"Anketler listelenirken bir hata oluştu: {ex.Message}");
         }
     }
+    #endregion
 
+    #region My-Polls
     // Admin için oluşturduğu tüm anketleri listeleyen metot
     [HttpGet("my-polls")]
     //[Authorize(Roles = "Admin")]
@@ -748,6 +770,8 @@ public class PollController : ControllerBase
                     CreatedDate = s.CreatedDate,
                     ExpiryDate = s.ExpiryDate,
                     IsActive = s.IsActive,
+                    CategoryId = s.CategoryId,
+                    NewCategoryName = s.Category.Name,
                     QuestionCount = s.Questions != null ? s.Questions.Count : 0,
                     ResponseCount = s.Responses != null ? s.Responses.Count : 0
                 })

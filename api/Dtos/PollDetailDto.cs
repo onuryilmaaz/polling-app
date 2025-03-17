@@ -11,4 +11,6 @@ public class PollDetailDto
     public DateTime? ExpiryDate { get; set; }
     public bool IsActive { get; set; }
     public List<QuestionDetailDto>? Questions { get; set; }
+    public int? CategoryId { get; set; } // Mevcut kategorilerden birini seçmek için
+    public string NewCategoryName { get; set; } // Yeni kategori oluşturmak için
 }

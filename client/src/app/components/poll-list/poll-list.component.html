@@ -51,11 +51,11 @@
         *ngFor="let poll of activePolls"
         class="bg-white shadow-md rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col h-64"
       >
-        <div class="flex-grow">
+        <div class="flex-grow w-80 truncate">
           <h3 class="text-lg font-semibold text-gray-900 mb-2">
             {{ poll.title }}
           </h3>
-          <p class="text-gray-600 mb-3 truncate">{{ poll.description }}</p>
+          <p class="text-gray-600 mb-3">{{ poll.description }}</p>
           <p class="text-sm text-gray-500">
             Soru Sayısı: {{ poll.questionCount }}
           </p>

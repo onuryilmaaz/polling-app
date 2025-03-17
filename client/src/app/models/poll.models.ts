@@ -5,6 +5,7 @@ export interface PollCreateDto {
   expiryDate?: Date;
   isActive: boolean;
   questions: QuestionCreateDto[];
+  categoryId: number;
 }
 
 export interface PollUpdateDto {
@@ -24,6 +25,8 @@ export interface PollDetailDto {
   expiryDate?: Date;
   isActive: boolean;
   questions: QuestionDetailDto[];
+  categoryId: number;
+  newCategoryName: string;
 }
 
 export interface PollListDto {
@@ -35,6 +38,7 @@ export interface PollListDto {
   isActive: boolean;
   questionCount: number;
   responseCount?: number;
+  newCategoryName: string;
 }
 
 export interface PollResponseDto {
@@ -91,6 +95,11 @@ export interface AnswerDto {
   questionId: number;
   textAnswer?: string;
   selectedOptionIds?: { [key: number]: number | null };
+}
+
+export interface Category {
+  id: string;
+  name: string;
 }
 
 export enum QuestionType {

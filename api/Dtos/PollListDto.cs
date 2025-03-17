@@ -12,4 +12,6 @@ public class PollListDto
     public bool IsActive { get; set; }
     public int QuestionCount { get; set; }
     public int ResponseCount { get; set; }
+    public int? CategoryId { get; set; } // Mevcut kategorilerden birini seçmek için
+    public string NewCategoryName { get; set; } // Yeni kategori oluşturmak için
 }

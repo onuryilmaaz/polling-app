@@ -102,7 +102,10 @@ export class PollService {
     expiredPollCount: number;
   }> {
     return this.http.get<{ message: string; expiredPollCount: number }>(
-      `${this.apiUrl}polls/check-expiration`
+      `${this.apiUrl}poll/check-expiration`
     );
+  }
+  getCategories(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}poll/categories`);
   }
 }

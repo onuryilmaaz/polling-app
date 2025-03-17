@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<User>
     public DbSet<Response> Responses { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<SelectedOption> SelectedOptions { get; set; }
+    public DbSet<PollCategory> PollCategories { get; set; }
 
     // protected override void OnModelCreating(ModelBuilder builder)
     // {
