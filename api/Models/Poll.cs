@@ -15,9 +15,11 @@ public class Poll
     public DateTime? ExpiryDate { get; set; }
     public bool IsActive { get; set; }
     public string? CreatedByUserId { get; set; }
+    public int? CategoryId { get; set; }
 
     // Navigation properties
     public User? CreatedByUser { get; set; }
     public ICollection<Question>? Questions { get; set; }
     public ICollection<Response>? Responses { get; set; }
+    public PollCategory? Category { get; set; }
 }

@@ -10,7 +10,7 @@ public class Answer
 
     // Navigation properties
     public Response? Response { get; set; }
-    public Question? Question { get; set; }
+    public virtual Question? Question { get; set; }
 
     // Farklı soru tipleri için cevap alanları
     public string? TextAnswer { get; set; }

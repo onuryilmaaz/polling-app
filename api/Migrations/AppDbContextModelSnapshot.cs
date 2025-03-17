@@ -166,6 +166,9 @@ namespace api.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("QuestionId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("ResponseId")
                         .HasColumnType("int");
 
@@ -175,6 +178,8 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("QuestionId");
+
+                    b.HasIndex("QuestionId1");
 
                     b.HasIndex("ResponseId");
 
@@ -213,6 +218,9 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedByUserId")
                         .HasColumnType("nvarchar(450)");
 
@@ -233,9 +241,29 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("CreatedByUserId");
 
                     b.ToTable("Polls");
+                });
+
+            modelBuilder.Entity("api.Models.PollCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PollCategory");
                 });
 
             modelBuilder.Entity("api.Models.Question", b =>
@@ -454,10 +482,14 @@ namespace api.Migrations
             modelBuilder.Entity("api.Models.Answer", b =>
                 {
                     b.HasOne("api.Models.Question", "Question")
-                        .WithMany("Answers")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("api.Models.Question", null)
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionId1");
 
                     b.HasOne("api.Models.Response", "Response")
                         .WithMany("Answers")
@@ -483,9 +515,15 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.Poll", b =>
                 {
+                    b.HasOne("api.Models.PollCategory", "Category")
+                        .WithMany("Polls")
+                        .HasForeignKey("CategoryId");
+
                     b.HasOne("api.Models.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
+
+                    b.Navigation("Category");
 
                     b.Navigation("CreatedByUser");
                 });
@@ -529,7 +567,7 @@ namespace api.Migrations
                     b.HasOne("api.Models.Option", "Option")
                         .WithMany()
                         .HasForeignKey("OptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Answer");
@@ -547,6 +585,11 @@ namespace api.Migrations
                     b.Navigation("Questions");
 
                     b.Navigation("Responses");
+                });
+
+            modelBuilder.Entity("api.Models.PollCategory", b =>
+                {
+                    b.Navigation("Polls");
                 });
 
             modelBuilder.Entity("api.Models.Question", b =>

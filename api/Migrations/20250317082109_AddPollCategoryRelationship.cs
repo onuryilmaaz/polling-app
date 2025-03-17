@@ -5,25 +5,24 @@
 namespace api.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveIsActiveUser1 : Migration
+    public partial class AddPollCategoryRelationship : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "isActive",
-                table: "AspNetUsers");
+                name: "Description",
+                table: "PollCategory");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "isActive",
-                table: "AspNetUsers",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+            migrationBuilder.AddColumn<string>(
+                name: "Description",
+                table: "PollCategory",
+                type: "nvarchar(max)",
+                nullable: true);
         }
     }
 }
