@@ -65,7 +65,8 @@
                   poll.isActive && !isPollExpired(poll),
                 'bg-green-500 hover:text-green-500 hover:border border-green-500':
                   !poll.isActive,
-                'bg-gray-400 cursor-not-allowed': isPollExpired(poll)
+                'bg-gray-500 hover:text-gray-500 hover:border border-gray-500 cursor-not-allowed':
+                  isPollExpired(poll)
               }"
               class="text-white px-3 py-1 border border-white hover:bg-white hover:text-black rounded-md transition-colors text-sm flex-1 whitespace-nowrap"
             >
