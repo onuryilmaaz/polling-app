@@ -1,0 +1,132 @@
+<div class="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+  <div class="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-6">
+    <!-- Başlık -->
+    <h1 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">
+      Kategori Yönetimi
+    </h1>
+
+    <!-- Kategori Oluşturma Kartı -->
+    <div class="bg-gray-50 p-5 rounded-xl shadow-md">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">
+        Yeni Kategori Oluştur
+      </h2>
+      <form
+        (ngSubmit)="onSubmit()"
+        #categoryForm="ngForm"
+        class="flex flex-col sm:flex-row gap-3"
+      >
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Kategori Adı</mat-label>
+          <input
+            matInput
+            name="categoryName"
+            [(ngModel)]="newCategory.name"
+            required
+            #categoryName="ngModel"
+            placeholder="Kategori adını girin"
+          />
+          <mat-error *ngIf="categoryName.invalid">Bu alan zorunludur</mat-error>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="!categoryForm.valid"
+          class="sm:self-center"
+        >
+          <mat-icon class="mr-1">add</mat-icon>
+          Oluştur
+        </button>
+      </form>
+    </div>
+
+    <!-- Kategori Listesi Kartı -->
+    <div class="bg-white rounded-xl shadow-md p-5 mt-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">
+        Mevcut Kategoriler
+      </h2>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="py-3 px-4 text-left text-gray-700">Kategori</th>
+              <th class="py-3 px-4 text-right">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let category of categories"
+              class="border-b hover:bg-gray-50 transition-colors"
+            >
+              <td class="py-3 px-4 text-gray-800 flex items-center">
+                <mat-icon class="text-indigo-500 mr-2">folder</mat-icon>
+                {{ category.name }}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="startEdit(category)"
+                  matTooltip="Düzenle"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteCategory(category.id)"
+                  matTooltip="Sil"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Kategori yoksa mesaj -->
+            <tr *ngIf="categories.length === 0">
+              <td colspan="2" class="py-8 text-center text-gray-500">
+                <mat-icon class="text-gray-400 mb-2" style="font-size: 48px"
+                  >folder_off</mat-icon
+                >
+                <p>Henüz kategori bulunmuyor</p>
+                <p class="text-sm mt-1">
+                  Yeni bir kategori oluşturmak için yukarıdaki formu kullanın
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Düzenleme Modalı -->
+    <div
+      *ngIf="editingCategory"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Kategori Düzenle</h2>
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full mb-4">
+          <mat-label>Kategori Adı</mat-label>
+          <input matInput [(ngModel)]="editingCategory.name" required />
+        </mat-form-field>
+
+        <div class="flex justify-end gap-2">
+          <button mat-button (click)="cancelEdit()">İptal</button>
+          <button mat-raised-button color="primary" (click)="saveEdit()">
+            <mat-icon class="mr-1">save</mat-icon>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

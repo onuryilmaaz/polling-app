@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { PollService } from '../../services/poll.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PollCreateDto, QuestionType } from '../../models/poll.models';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,6 +25,8 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { CategoryService } from '../../services/category.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CategoryCreateDialogComponent } from '../category-create-dialog/category-create-dialog.component';
 
 @Component({
   selector: 'app-poll-create',
@@ -55,7 +57,8 @@ export class PollCreateComponent implements OnInit {
   constructor(
     private pollService: PollService,
     private categoryService: CategoryService,
-    private router: Router
+    private router: Router,
+    public dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -71,6 +74,19 @@ export class PollCreateComponent implements OnInit {
         .reduce((prev, next) => (next ? prev + 1 : prev), 0);
       return totalChecked >= minRequired ? null : { required: true };
     };
+  }
+
+  openCategoryDialog(): void {
+    const dialogRef = this.dialog.open(CategoryCreateDialogComponent, {
+      width: '1000px',
+      height: '700px',
+      maxWidth: '90vw',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('Diyalog kapandı', result);
+      // Gerekirse kategori listesini yenileyin
+    });
   }
 
   loadCategories(): void {
@@ -172,69 +188,6 @@ export class PollCreateComponent implements OnInit {
       control.get('orderIndex')?.setValue(i);
     });
   }
-
-  // onSubmit(): void {
-  //   // Check if form is valid
-  //   if (this.pollForm.invalid) {
-  //     this.markFormGroupTouched(this.pollForm);
-  //     return;
-  //   }
-
-  //   const formValue = this.pollForm.getRawValue();
-  //   const poll: PollCreateDto = {
-  //     title: formValue.title,
-  //     description: formValue.description,
-  //     createdDate: formValue.createdDate
-  //       ? new Date(formValue.createdDate)
-  //       : undefined,
-  //     expiryDate: formValue.expiryDate
-  //       ? new Date(formValue.expiryDate)
-  //       : undefined,
-  //     isActive: formValue.isActive,
-  //     categoryId: formValue.categoryId,
-  //     categoryName: formValue.newCategoryName,
-  //     questions: formValue.questions.map((q: any, index: number) => {
-  //       return {
-  //         ...q,
-  //         type: Number(q.type),
-  //         orderIndex: index,
-  //         options: q.options.map((opt: any, optIndex: number) => {
-  //           if (!opt.text || opt.text.trim() === '') {
-  //             opt.text = `Seçenek ${optIndex + 1}`;
-  //             console.warn('Bazı seçenekler boş. Varsayılan değerler atandı.');
-  //           }
-  //           return {
-  //             ...opt,
-  //             orderIndex: optIndex,
-  //           };
-  //         }),
-  //       };
-  //     }),
-  //   };
-
-  //   this.pollService.createPoll(poll).subscribe({
-  //     next: (response) => {
-  //       Swal.fire({
-  //         title: 'Başarılı!',
-  //         text: response.message,
-  //         icon: 'success',
-  //         timer: 1000,
-  //       });
-  //       this.router.navigate(['/poll-list']);
-  //     },
-  //     error: (err) => {
-  //       console.error('Hata:', err);
-  //       Swal.fire({
-  //         title: 'Hata!',
-  //         text: err.error?.message || 'Bir hata oluştu.',
-  //         icon: 'error',
-  //         confirmButtonText: 'Kapat',
-  //       });
-  //     },
-  //   });
-  // }
-
-  // Helper method to mark all controls in a form group as touched
 
   onSubmit(): void {
     if (this.pollForm.invalid) {

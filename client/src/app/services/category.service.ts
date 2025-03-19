@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 
 // Interface'ler
 export interface Category {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -15,6 +15,10 @@ export interface CategoryCreateDto {
 }
 
 export interface CategoryUpdateDto {
+  name: string;
+}
+export interface CategoryListDto {
+  id: string;
   name: string;
 }
 

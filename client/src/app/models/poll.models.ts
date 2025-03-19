@@ -96,8 +96,21 @@ export interface AnswerDto {
   textAnswer?: string;
   selectedOptionIds?: { [key: number]: number | null };
 }
-
 export interface Category {
+  id: number; // TypeScript hatalarına bakılırsa bu number tipinde
+  name: string;
+}
+
+export interface CategoryCreateDto {
+  name: string;
+}
+
+export interface CategoryUpdateDto {
+  id: string;
+  name: string;
+}
+
+export interface CategoryListDto {
   id: string;
   name: string;
 }

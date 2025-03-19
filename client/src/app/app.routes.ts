@@ -10,6 +10,7 @@ import { PollDetailComponent } from './components/poll-detail/poll-detail.compon
 import { AdminPollListComponent } from './components/admin-poll-list/admin-poll-list.component';
 import { PollEditComponent } from './components/poll-edit/poll-edit.component';
 import { PollResultsComponent } from './components/poll-results/poll-results.component';
+import { CategoryCreateComponent } from './components/category-create/category-create.component';
 
 export const routes: Routes = [
   {
@@ -59,6 +60,12 @@ export const routes: Routes = [
   {
     path: 'users',
     component: UsersComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] },
+  },
+  {
+    path: 'category-create',
+    component: CategoryCreateComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] },
   },
