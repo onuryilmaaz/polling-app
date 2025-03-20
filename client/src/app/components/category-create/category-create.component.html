@@ -6,16 +6,13 @@
     </h1>
 
     <!-- Kategori Oluşturma Kartı -->
-    <div class="bg-gray-50 p-5 rounded-xl shadow-md">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">
-        Yeni Kategori Oluştur
-      </h2>
+    <div class="bg-gray-50 p-4 rounded-lg">
       <form
         (ngSubmit)="onSubmit()"
         #categoryForm="ngForm"
         class="flex flex-col sm:flex-row gap-3"
       >
-        <mat-form-field appearance="outline" class="flex-grow">
+        <mat-form-field appearance="fill" class="flex-grow">
           <mat-label>Kategori Adı</mat-label>
           <input
             matInput
@@ -25,6 +22,7 @@
             #categoryName="ngModel"
             placeholder="Kategori adını girin"
           />
+          <mat-icon matPrefix>category</mat-icon>
           <mat-error *ngIf="categoryName.invalid">Bu alan zorunludur</mat-error>
         </mat-form-field>
 
@@ -41,18 +39,14 @@
       </form>
     </div>
 
-    <!-- Kategori Listesi Kartı -->
-    <div class="bg-white rounded-xl shadow-md p-5 mt-6">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">
-        Mevcut Kategoriler
-      </h2>
-
+    <!-- Kategori Listesi -->
+    <div class="mt-4">
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-lg">
           <thead class="bg-gray-100">
             <tr>
-              <th class="py-3 px-4 text-left text-gray-700">Kategori</th>
-              <th class="py-3 px-4 text-right">İşlemler</th>
+              <th class="py-2 px-3 text-left text-gray-700">Kategori</th>
+              <th class="py-2 px-3 text-right">İşlemler</th>
             </tr>
           </thead>
           <tbody>
@@ -60,11 +54,11 @@
               *ngFor="let category of categories"
               class="border-b hover:bg-gray-50 transition-colors"
             >
-              <td class="py-3 px-4 text-gray-800 flex items-center">
+              <td class="py-2 px-3 text-gray-800 flex items-center">
                 <mat-icon class="text-indigo-500 mr-2">folder</mat-icon>
                 {{ category.name }}
               </td>
-              <td class="py-3 px-4 text-right">
+              <td class="py-2 px-3 text-right">
                 <button
                   mat-icon-button
                   color="primary"
@@ -86,14 +80,11 @@
 
             <!-- Kategori yoksa mesaj -->
             <tr *ngIf="categories.length === 0">
-              <td colspan="2" class="py-8 text-center text-gray-500">
-                <mat-icon class="text-gray-400 mb-2" style="font-size: 48px"
+              <td colspan="2" class="py-4 text-center text-gray-500">
+                <mat-icon class="text-gray-400 mb-2" style="font-size: 32px"
                   >folder_off</mat-icon
                 >
                 <p>Henüz kategori bulunmuyor</p>
-                <p class="text-sm mt-1">
-                  Yeni bir kategori oluşturmak için yukarıdaki formu kullanın
-                </p>
               </td>
             </tr>
           </tbody>
@@ -101,7 +92,7 @@
       </div>
     </div>
 
-    <!-- Düzenleme Modalı -->
+    <!-- Düzenleme Modalı (aynı şekilde kalabilir) -->
     <div
       *ngIf="editingCategory"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -114,7 +105,7 @@
           </button>
         </div>
 
-        <mat-form-field appearance="outline" class="w-full mb-4">
+        <mat-form-field appearance="fill" class="w-full mb-4">
           <mat-label>Kategori Adı</mat-label>
           <input matInput [(ngModel)]="editingCategory.name" required />
         </mat-form-field>

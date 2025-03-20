@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   CategoryCreateDto,
   CategoryUpdateDto,
@@ -14,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-category-create',
@@ -28,7 +27,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatSnackBarModule,
   ],
   templateUrl: './category-create.component.html',
   styleUrls: ['./category-create.component.css'],
@@ -39,10 +37,7 @@ export class CategoryCreateComponent implements OnInit {
   newCategory: CategoryCreateDto = { name: '' };
   editingCategory: Category | null = null;
 
-  constructor(
-    private categoryService: CategoryService,
-    private snackBar: MatSnackBar
-  ) {}
+  constructor(private categoryService: CategoryService) {}
 
   ngOnInit(): void {
     this.loadCategories();
@@ -51,42 +46,48 @@ export class CategoryCreateComponent implements OnInit {
   private loadCategories(): void {
     this.categoryService.getCategories().subscribe({
       next: (data) => {
-        // Category ile CategoryListDto arasında tip dönüşümü yapıyoruz
         this.categories = data.map((item) => ({
-          id: Number(item.id), // String ID'yi number'a dönüştürüyoruz
+          id: Number(item.id),
           name: item.name,
         }));
       },
-      error: (err) => this.showError('Kategoriler yüklenemedi'),
+      error: () => this.showError('Kategoriler yüklenemedi'),
     });
   }
 
   onSubmit(): void {
     this.categoryService.createCategory(this.newCategory).subscribe({
       next: (createdCategory) => {
-        // CategoryListDto'dan Category'ye dönüştürme
         this.categories.push({
           id: Number(createdCategory.id),
           name: createdCategory.name,
         });
-        this.newCategory = { name: '' };
         this.showSuccess('Kategori başarıyla oluşturuldu');
+        this.newCategory = { name: '' };
       },
-      error: (err) => this.showError('Kategori oluşturma başarısız'),
+      error: () => this.showError('Kategori oluşturma başarısız'),
     });
   }
 
   deleteCategory(id: number): void {
-    if (confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) {
-      // Number ID'yi string'e dönüştürüyoruz
-      this.categoryService.deleteCategory(id).subscribe({
-        next: () => {
-          this.categories = this.categories.filter((c) => c.id !== id);
-          this.showSuccess('Kategori başarıyla silindi');
-        },
-        error: (err) => this.showError('Silme işlemi başarısız'),
-      });
-    }
+    Swal.fire({
+      title: 'Emin misiniz?',
+      text: 'Bu kategoriyi silmek istediğinize emin misiniz?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Evet, sil',
+      cancelButtonText: 'İptal',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteCategory(id).subscribe({
+          next: () => {
+            this.categories = this.categories.filter((c) => c.id !== id);
+            this.showSuccess('Kategori başarıyla silindi');
+          },
+          error: () => this.showError('Silme işlemi başarısız'),
+        });
+      }
+    });
   }
 
   startEdit(category: Category): void {
@@ -95,7 +96,6 @@ export class CategoryCreateComponent implements OnInit {
 
   saveEdit(): void {
     if (this.editingCategory) {
-      // CategoryUpdateDto'yu oluşturuyoruz, sadece name ile
       const updateDto: CategoryUpdateDto = {
         name: this.editingCategory.name,
       };
@@ -108,7 +108,6 @@ export class CategoryCreateComponent implements OnInit {
               (c) => c.id === Number(updatedCategory.id)
             );
             if (index > -1) {
-              // CategoryListDto'dan Category'ye dönüştürme
               this.categories[index] = {
                 id: Number(updatedCategory.id),
                 name: updatedCategory.name,
@@ -117,7 +116,7 @@ export class CategoryCreateComponent implements OnInit {
             this.editingCategory = null;
             this.showSuccess('Kategori başarıyla güncellendi');
           },
-          error: (err) => this.showError('Güncelleme başarısız'),
+          error: () => this.showError('Güncelleme başarısız'),
         });
     }
   }
@@ -127,16 +126,20 @@ export class CategoryCreateComponent implements OnInit {
   }
 
   private showSuccess(message: string): void {
-    this.snackBar.open(message, 'Kapat', {
-      duration: 3000,
-      panelClass: ['success-snackbar'],
+    Swal.fire({
+      title: 'Başarılı!',
+      text: message,
+      icon: 'success',
+      timer: 1500,
     });
   }
 
   private showError(message: string): void {
-    this.snackBar.open(message, 'Kapat', {
-      duration: 3000,
-      panelClass: ['error-snackbar'],
+    Swal.fire({
+      title: 'Hata!',
+      text: message || 'Bir hata oluştu.',
+      icon: 'error',
+      timer: 1500,
     });
   }
 }

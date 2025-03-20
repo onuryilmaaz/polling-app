@@ -58,7 +58,7 @@ export class PollCreateComponent implements OnInit {
     private pollService: PollService,
     private categoryService: CategoryService,
     private router: Router,
-    public dialog: MatDialog
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -76,17 +76,21 @@ export class PollCreateComponent implements OnInit {
     };
   }
 
-  openCategoryDialog(): void {
-    const dialogRef = this.dialog.open(CategoryCreateDialogComponent, {
-      width: '1000px',
-      height: '700px',
-      maxWidth: '90vw',
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log('Diyalog kapandı', result);
-      // Gerekirse kategori listesini yenileyin
-    });
+  openCategoryDialog() {
+    const dialogRef = this.dialog
+      .open(CategoryCreateDialogComponent, {
+        width: '650px',
+        maxWidth: '95vw',
+        data: {
+          categories: this.categories,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.categories = result;
+        }
+      });
   }
 
   loadCategories(): void {

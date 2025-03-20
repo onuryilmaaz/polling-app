@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import Swal from 'sweetalert2';
 
 // Interface'ler
 export interface Category {
@@ -43,7 +44,7 @@ export class CategoryService {
       })
     );
   }
-
+  
   // Yeni kategori oluştur
   createCategory(dto: CategoryCreateDto): Observable<Category> {
     return this.http

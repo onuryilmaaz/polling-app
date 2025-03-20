@@ -277,27 +277,34 @@
 
       <mat-card class="form-section" *ngIf="pollForm.get('categories')">
         <h3 class="text-sm text-gray-700 px-4 pt-3">Kategoriler</h3>
+
         <div
           formArrayName="categories"
           class="flex items-center justify-between"
         >
-          <div *ngFor="let category of categories; let i = index">
-            <mat-checkbox class="" [formControlName]="i">{{
-              category.name
-            }}</mat-checkbox>
+          <div class="mx-2 grid grid-cols-5 gap-4">
+            <mat-checkbox
+              *ngFor="let category of categories; let i = index"
+              [formControlName]="i"
+              class="w-full"
+            >
+              {{ category.name }}
+            </mat-checkbox>
           </div>
-          <button
-            mat-raised-button
-            class="p-3 flex items-end justify-between text-gray-800 m-3 bg-green-500"
-            type="button"
-            color="warn"
-            (click)="openCategoryDialog()"
-          >
-            <mat-icon class="mr-2">add_circle</mat-icon>
-            Ekle
-          </button>
         </div>
+
+        <button
+          mat-raised-button
+          class="p-3 flex items-center justify-center text-gray-800 m-3 bg-green-500"
+          type="button"
+          color="warn"
+          (click)="openCategoryDialog()"
+        >
+          <mat-icon class="mr-2">add_circle</mat-icon>
+          Ekle
+        </button>
         <mat-error
+          class="m-3"
           *ngIf="
             pollForm.get('categories')?.hasError('required') &&
             (pollForm.get('categories')?.touched ||

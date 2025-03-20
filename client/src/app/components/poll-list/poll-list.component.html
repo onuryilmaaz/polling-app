@@ -1,14 +1,11 @@
 <div
   class="relative flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black text-white py-16"
 >
-  <div
-    *ngIf="activePolls.length > 0; else noPolls"
-    class="max-w-4xl mx-auto mt-4 text-white"
-  >
+  <div *ngIf="activePolls.length > 0; else noPolls" class="mt-4 text-white">
     <h2 class="text-7xl font-bold text-white text-center mb-4">
       Aktif Anketler
     </h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
       <div class="absolute w-full">
         <div class="stars-container">
           <div
@@ -36,7 +33,6 @@
             class="star animate-ping-slower absolute top-3/5 left-4/5 w-1 h-1 rounded-full bg-white opacity-60"
           ></div>
         </div>
-
         <div
           class="absolute -top-20 -left-20 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"
         ></div>
@@ -49,13 +45,13 @@
       </div>
       <div
         *ngFor="let poll of activePolls"
-        class="bg-white shadow-md rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col h-64"
+        class="bg-white shadow-md rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col h-64"
       >
-        <div class="flex-grow w-80 truncate">
+        <div class="flex-grow w-80">
           <h3 class="text-lg font-semibold text-gray-900 mb-2">
             {{ poll.title }}
           </h3>
-          <p class="text-gray-600 mb-3">{{ poll.description }}</p>
+          <p class="text-gray-600 mb-3 truncate">{{ poll.description }}</p>
           <p class="text-sm text-gray-500">
             Soru Sayısı: {{ poll.questionCount }}
           </p>
