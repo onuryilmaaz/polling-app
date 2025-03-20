@@ -46,76 +46,65 @@
       </div>
     </div>
 
-    <!-- Poll status summary -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Anket Durumu</h2>
-      </div>
-      <div class="p-6">
-        <div class="flex space-x-4">
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-green-500">
-              {{ pollSummary.pollStatusSummary.active }}
-            </div>
-            <div class="text-sm text-gray-500">Aktif</div>
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Poll status chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Anket Durumu</h2>
+        <div class="h-64 flex justify-center">
+          <canvas
+            baseChart
+            [data]="pollStatusChartData"
+            [options]="pollStatusChartOptions"
+            [type]="'doughnut'"
+          >
+          </canvas>
+        </div>
+        <div class="flex justify-around mt-4 text-sm text-gray-600">
+          <div class="flex items-center">
+            <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+            <span>Aktif: {{ pollSummary.pollStatusSummary.active }}</span>
           </div>
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-gray-500">
-              {{ pollSummary.pollStatusSummary.inactive }}
-            </div>
-            <div class="text-sm text-gray-500">Pasif</div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>
+            <span>Pasif: {{ pollSummary.pollStatusSummary.inactive }}</span>
           </div>
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-red-500">
-              {{ pollSummary.pollStatusSummary.expired }}
-            </div>
-            <div class="text-sm text-gray-500">Süresi Dolmuş</div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+            <span
+              >Süresi Dolmuş: {{ pollSummary.pollStatusSummary.expired }}</span
+            >
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Category distribution -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Kategori Dağılımı</h2>
+      <!-- Category chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">
+          Kategori Dağılımı
+        </h2>
+        <div class="h-64">
+          <canvas
+            baseChart
+            [data]="categoryChartData"
+            [options]="categoryChartOptions"
+            [type]="'bar'"
+          >
+          </canvas>
+        </div>
       </div>
-      <div class="p-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Kategori Adı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Anket Sayısı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Toplam Yanıt
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let category of pollSummary.category">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.categoryName }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.pollCount }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.totalResponses }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+      <!-- Monthly distribution chart -->
+      <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Aylık Dağılım</h2>
+        <div class="h-64">
+          <canvas
+            baseChart
+            [data]="monthlyChartData"
+            [options]="monthlyChartOptions"
+            [type]="'line'"
+          >
+          </canvas>
         </div>
       </div>
     </div>
@@ -133,7 +122,7 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Anket Name
+                  Kategori
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -165,7 +154,7 @@
             <tbody class="bg-white divide-y divide-gray-200">
               <tr *ngFor="let poll of pollSummary.topPolls">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ poll.categoryName }}
+                  {{ getCategoryName(poll.categoryId) }}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800"
@@ -202,10 +191,10 @@
       </div>
     </div>
 
-    <!-- Monthly distribution -->
+    <!-- Monthly distribution table -->
     <div class="bg-white rounded-lg shadow">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Aylık Dağılım</h2>
+        <h2 class="text-lg font-medium text-gray-900">Aylık Dağılım Detayı</h2>
       </div>
       <div class="p-6">
         <div class="overflow-x-auto">

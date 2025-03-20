@@ -456,6 +456,135 @@ public class PollController : ControllerBase
     }
     #endregion
 
+    #region Anket Özet İstatistikleri
+    [HttpGet("summary")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPollsSummary()
+    {
+        try
+        {
+            // Kullanıcı kimliğini al
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            }
+
+            if (!Guid.TryParse(userIdClaim.Value, out Guid userId))
+            {
+                return Unauthorized("Geçersiz kullanıcı kimliği.");
+            }
+
+            // Tüm anketleri yükle
+            var polls = await _context.Polls
+                .Include(p => p.Questions)
+                .Include(p => p.Responses)
+                    .ThenInclude(r => r.Answers)
+                .Include(p => p.Category)
+                .ToListAsync();
+
+            // Sadece kullanıcının oluşturduğu anketleri filtrele
+            var userPolls = polls.Where(p => Guid.TryParse(p.CreatedByUserId, out Guid creatorId) && creatorId == userId).ToList();
+
+            // Kategorileri al - sadece CategoryId'ye göre gruplanmış anketler
+            var pollCategories = userPolls
+                .Where(p => p.CategoryId.HasValue)
+                .GroupBy(p => p.CategoryId)
+                .Select(g => new { CategoryId = g.Key, PollCount = g.Count() })
+                .ToList();
+
+            // Özet istatistikleri hesapla
+            var summary = new
+            {
+                TotalPolls = userPolls.Count,
+                TotalQuestions = userPolls.Sum(p => p.Questions.Count),
+                TotalResponses = userPolls.Sum(p => p.Responses.Count),
+                TotalAnswers = userPolls.Sum(p => p.Responses.Sum(r => r.Answers.Count)),
+                ActivePolls = userPolls.Count(p => p.IsActive),
+                ExpiredPolls = userPolls.Count(p => p.ExpiryDate.HasValue && p.ExpiryDate < DateTime.UtcNow),
+                AverageQuestionsPerPoll = userPolls.Count > 0 ? Math.Round((double)userPolls.Sum(p => p.Questions.Count) / userPolls.Count, 2) : 0,
+                AverageResponsesPerPoll = userPolls.Count > 0 ? Math.Round((double)userPolls.Sum(p => p.Responses.Count) / userPolls.Count, 2) : 0,
+                Category = polls.Select(c => new
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.Category.Name,
+                    PollCount = polls.Count(p => p.CategoryId == c.CategoryId),
+                    TotalResponses = userPolls.Where(p => p.CategoryId == c.CategoryId).Sum(p => p.Responses.Count),
+                }).ToList(),
+
+                // Kategori bazında anket dağılımı (sadece CategoryId kullanılıyor)
+                Categories = pollCategories.Select(c => new
+                {
+                    CategoryId = c.CategoryId,
+                    PollCount = c.PollCount,
+                    TotalResponses = userPolls.Where(p => p.CategoryId == c.CategoryId).Sum(p => p.Responses.Count),
+                    AverageResponsesPerPoll = c.PollCount > 0 ?
+                        Math.Round((double)userPolls.Where(p => p.CategoryId == c.CategoryId).Sum(p => p.Responses.Count) / c.PollCount, 2) : 0
+                }).OrderByDescending(c => c.PollCount).ToList(),
+
+                // Anket tiplerine göre özet (aktif/pasif, süresi dolmuş vs.)
+                PollStatusSummary = new
+                {
+                    Active = userPolls.Count(p => p.IsActive && (!p.ExpiryDate.HasValue || p.ExpiryDate >= DateTime.UtcNow)),
+                    Inactive = userPolls.Count(p => !p.IsActive),
+                    Expired = userPolls.Count(p => p.IsActive && p.ExpiryDate.HasValue && p.ExpiryDate < DateTime.UtcNow)
+                },
+
+                // En popüler anketler (en çok cevaplanan)
+                TopPolls = userPolls
+                    .OrderByDescending(p => p.Responses.Count)
+                    .Take(5)
+                    .Select(p => new
+                    {
+                        PollId = p.Id,
+                        Title = p.Title,
+                        CategoryId = p.CategoryId,
+                        CategoryName = p.Category.Name,
+                        ResponseCount = p.Responses.Count,
+                        QuestionCount = p.Questions.Count,
+                        CreatedDate = p.CreatedDate,
+                        IsActive = p.IsActive
+                    }).ToList(),
+
+                // En son oluşturulan anketler
+                RecentPolls = userPolls
+                    .OrderByDescending(p => p.CreatedDate)
+                    .Take(5)
+                    .Select(p => new
+                    {
+                        PollId = p.Id,
+                        Title = p.Title,
+                        CategoryId = p.CategoryId,
+                        ResponseCount = p.Responses.Count,
+                        QuestionCount = p.Questions.Count,
+                        CreatedDate = p.CreatedDate,
+                        IsActive = p.IsActive
+                    }).ToList(),
+
+                // Aylara göre anket dağılımı (son 6 ay)
+                MonthlyDistribution = Enumerable.Range(0, 6)
+                    .Select(i => DateTime.UtcNow.AddMonths(-i))
+                    .Select(date => new
+                    {
+                        Month = date.ToString("MMMM yyyy"),
+                        PollsCreated = userPolls.Count(p => p.CreatedDate.Year == date.Year && p.CreatedDate.Month == date.Month),
+                        ResponsesReceived = userPolls
+                            .SelectMany(p => p.Responses)
+                            .Count(r => r.SubmittedDate.Year == date.Year && r.SubmittedDate.Month == date.Month)
+                    })
+                    .OrderBy(x => DateTime.ParseExact(x.Month, "MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture))
+                    .ToList()
+            };
+
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Anket özet istatistikleri alınırken bir hata oluştu: {ex.Message}");
+        }
+    }
+    #endregion
+
     #region Anket Aktif-Pasif
     [HttpDelete("toogle/{id}")]
     [Authorize(Roles = "Admin")]

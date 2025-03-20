@@ -105,7 +105,7 @@ export class PollService {
       `${this.apiUrl}poll/check-expiration`
     );
   }
-  getCategories(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}poll/categories`);
+  getPollSummary(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}poll/summary`);
   }
 }
