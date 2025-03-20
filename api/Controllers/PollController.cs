@@ -583,7 +583,25 @@ public class PollController : ControllerBase
             Guid? userId = null;
             string sessionId = null;
 
-            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                // Giriş yapmış kullanıcı için
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null)
+                {
+                    userId = Guid.Parse(userIdClaim.Value);
+
+                    // Giriş yapmış kullanıcı için sadece userId kontrolü yapılıyor
+                    bool hasSubmitted = await _context.Responses
+                        .AnyAsync(r => r.PollId == pollId && r.UserId == userId.ToString());
+
+                    if (hasSubmitted)
+                    {
+                        return BadRequest("Bu anketi daha önce yanıtladınız.");
+                    }
+                }
+            }
+            else
             {
                 // Anonim kullanıcı işlemi
                 Request.Cookies.TryGetValue("PollSessionId", out string cookieSessionId);
@@ -603,42 +621,13 @@ public class PollController : ControllerBase
                     return BadRequest("Bu anketi daha önce yanıtladınız.");
                 }
             }
-            else
-            {
-                // Giriş yapmış kullanıcı için
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim != null)
-                {
-                    userId = Guid.Parse(userIdClaim.Value);
-                }
-                else
-                {
-                    // Kullanıcı kimliği yoksa oturum kimliğini kullan
-                    Request.Cookies.TryGetValue("PollSessionId", out string cookieSessionId);
-                    sessionId = cookieSessionId;
-
-                    if (string.IsNullOrEmpty(sessionId))
-                    {
-                        sessionId = Guid.NewGuid().ToString();
-                        Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
-                    }
-                }
-
-                bool hasSubmitted = await _context.Responses
-                    .AnyAsync(r => r.PollId == pollId && (r.UserId == userId.ToString() || r.SessionId == sessionId));
-
-                if (hasSubmitted)
-                {
-                    return BadRequest("Bu anketi daha önce yanıtladınız.");
-                }
-            }
 
             // Yeni Response oluşturuluyor
             var response = new Response
             {
                 PollId = pollId,
-                UserId = userId?.ToString(),  // Kullanıcı ID'si varsa, varsa kullan
-                SessionId = sessionId,
+                UserId = userId?.ToString(),  // Kullanıcı ID'si varsa kullan
+                SessionId = sessionId,        // Anonim kullanıcı için sessionId kullan
                 SubmittedDate = DateTime.UtcNow,
                 Answers = new List<Answer>()
             };
