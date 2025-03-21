@@ -4,7 +4,7 @@
   <div *ngIf="loading" class="p-4 text-center text-white">Loading...</div>
   <div *ngIf="error" class="p-4 text-center text-red-600">{{ error }}</div>
 
-  <div *ngIf="poll" class="max-w-5xl mx-auto p-4 space-y-8">
+  <div *ngIf="poll" class="max-w-4xl min-w-[58rem] mx-auto p-4 space-y-8">
     <div class="space-y-2">
       <div class="grid grid-cols-1 gap-4 bg-gray-50 p-4 rounded-lg mb-4">
         <h2 class="text-3xl font-bold text-gray-800">{{ poll.title }}</h2>
