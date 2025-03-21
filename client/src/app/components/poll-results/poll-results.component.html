@@ -1,148 +1,160 @@
-<div *ngIf="loading" class="p-4 text-center text-gray-600">Loading...</div>
-<div *ngIf="error" class="p-4 text-center text-red-600">{{ error }}</div>
+<div
+  class="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 flex flex-col"
+>
+  <div *ngIf="loading" class="p-4 text-center text-white">Loading...</div>
+  <div *ngIf="error" class="p-4 text-center text-red-600">{{ error }}</div>
 
-<div *ngIf="poll" class="max-w-5xl mx-auto p-4 space-y-8">
-  <div class="space-y-2">
-    <h2 class="text-3xl font-bold text-gray-800">{{ poll.title }}</h2>
-    <p class="text-gray-600">{{ poll.description }}</p>
-
-    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-      <div>
-        <p class="text-sm font-medium text-gray-500">Total Responses</p>
-        <p class="text-2xl font-bold text-gray-800">
-          {{ poll.totalResponses }}
-        </p>
+  <div *ngIf="poll" class="max-w-5xl mx-auto p-4 space-y-8">
+    <div class="space-y-2">
+      <div class="grid grid-cols-1 gap-4 bg-gray-50 p-4 rounded-lg mb-4">
+        <h2 class="text-3xl font-bold text-gray-800">{{ poll.title }}</h2>
+        <p class="text-gray-600">{{ poll.description }}</p>
       </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500">Expiry Date</p>
-        <p class="text-gray-800">{{ formatExpiryDate(poll.expiryDate) }}</p>
+
+      <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Total Responses</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ poll.totalResponses }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500">Expiry Date</p>
+          <p class="text-gray-800">{{ formatExpiryDate(poll.expiryDate) }}</p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div
-    *ngFor="let question of poll.questions; let i = index"
-    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
-  >
-    <h3 class="text-lg font-medium text-gray-800 mb-4">{{ question.text }}</h3>
-
-    <!-- Text Question -->
-    <div *ngIf="isTextQuestion(question)" class="space-y-3">
-      <h4 class="text-sm font-medium text-gray-500">
-        Text Responses ({{ question.totalAnswers }})
-      </h4>
-      <ul class="space-y-2">
-        <li
-          *ngFor="let answer of question.textAnswers"
-          class="bg-gray-50 p-3 rounded-lg text-gray-700 text-sm"
-        >
-          {{ answer }}
-        </li>
-      </ul>
-    </div>
-
-    <!-- Multiple Choice/YesNo Charts -->
     <div
-      *ngIf="question.type === 'MultipleChoice' || question.type === 'YesNo'"
-      class="space-y-6"
+      *ngFor="let question of poll.questions; let i = index"
+      class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
     >
-      <!-- Mevcut Bar gösterimi -->
-      <div *ngFor="let option of question.options" class="space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="text-sm text-gray-700">{{ option.text }}</span>
-          <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div
-            class="bg-green-500 h-2 rounded-full"
-            [style.width.%]="option.percentage"
-          ></div>
-        </div>
-        <div class="text-xs text-gray-500 text-right">
-          {{ option.count }} responses
-        </div>
+      <h3 class="text-lg font-medium text-gray-800 mb-4">
+        {{ question.text }}
+      </h3>
+
+      <!-- Text Question -->
+      <div *ngIf="isTextQuestion(question)" class="space-y-3">
+        <h4 class="text-sm font-medium text-gray-500">
+          Text Responses ({{ question.totalAnswers }})
+        </h4>
+        <ul class="space-y-2">
+          <li
+            *ngFor="let answer of question.textAnswers"
+            class="bg-gray-50 p-3 rounded-lg text-gray-700 text-sm"
+          >
+            {{ answer }}
+          </li>
+        </ul>
       </div>
 
-      <!-- Grafikler -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <canvas [id]="'question-' + i + '-pie'"></canvas>
-        </div>
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <canvas [id]="'question-' + i + '-bar'"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- MultiSelect Charts -->
-    <div *ngIf="question.type === 'MultiSelect'" class="space-y-6">
-      <!-- Mevcut Bar gösterimi -->
+      <!-- Multiple Choice/YesNo Charts -->
       <div
-        *ngFor="let option of question.multiSelectResults.selectionCounts"
-        class="space-y-1"
+        *ngIf="question.type === 'MultipleChoice' || question.type === 'YesNo'"
+        class="space-y-6"
       >
-        <div class="flex items-center justify-between">
-          <span class="text-sm text-gray-700">{{ option.text }}</span>
-          <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
+        <!-- Mevcut Bar gösterimi -->
+        <div *ngFor="let option of question.options" class="space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-700">{{ option.text }}</span>
+            <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div
+              class="bg-green-500 h-2 rounded-full"
+              [style.width.%]="option.percentage"
+            ></div>
+          </div>
+          <div class="text-xs text-gray-500 text-right">
+            {{ option.count }} responses
+          </div>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div
-            class="bg-blue-500 h-2 rounded-full"
-            [style.width.%]="option.percentage"
-          ></div>
-        </div>
-        <div class="text-xs text-gray-500 text-right">
-          {{ option.count }} selections
+
+        <!-- Grafikler -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <canvas [id]="'question-' + i + '-pie'"></canvas>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <canvas [id]="'question-' + i + '-bar'"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- Grafik -->
-      <div class="mt-6">
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <canvas [id]="'question-' + i + '-horizontal'"></canvas>
+      <!-- MultiSelect Charts -->
+      <div *ngIf="question.type === 'MultiSelect'" class="space-y-6">
+        <!-- Mevcut Bar gösterimi -->
+        <div
+          *ngFor="let option of question.multiSelectResults.selectionCounts"
+          class="space-y-1"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-700">{{ option.text }}</span>
+            <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div
+              class="bg-blue-500 h-2 rounded-full"
+              [style.width.%]="option.percentage"
+            ></div>
+          </div>
+          <div class="text-xs text-gray-500 text-right">
+            {{ option.count }} selections
+          </div>
+        </div>
+
+        <!-- Grafik -->
+        <div class="mt-6">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <canvas [id]="'question-' + i + '-horizontal'"></canvas>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Ranking Table ve Chart -->
-    <div *ngIf="question.type === 'Ranking'" class="space-y-6">
-      <!-- Mevcut tablo gösterimi -->
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                Option
-              </th>
-              <th
-                *ngFor="
-                  let rank of [].constructor(question.maxSelections);
-                  let i = index
-                "
-                class="px-4 py-2 text-center text-sm font-medium text-gray-500"
-              >
-                Rank {{ i + 1 }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr *ngFor="let option of question.rankingResults">
-              <td class="px-4 py-3 text-sm text-gray-700">{{ option.text }}</td>
-              <td
-                *ngFor="let rank of getRankColumns(question)"
-                class="px-4 py-3 text-center text-sm text-gray-600"
-              >
-                {{ getRankCount(option.rankDistribution, rank) || "-" }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Ranking Table ve Chart -->
+      <div *ngIf="question.type === 'Ranking'" class="space-y-6">
+        <!-- Mevcut tablo gösterimi -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-4 py-2 text-left text-sm font-medium text-gray-500"
+                >
+                  Option
+                </th>
+                <th
+                  *ngFor="
+                    let rank of [].constructor(question.maxSelections);
+                    let i = index
+                  "
+                  class="px-4 py-2 text-center text-sm font-medium text-gray-500"
+                >
+                  Rank {{ i + 1 }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr *ngFor="let option of question.rankingResults">
+                <td class="px-4 py-3 text-sm text-gray-700">
+                  {{ option.text }}
+                </td>
+                <td
+                  *ngFor="let rank of getRankColumns(question)"
+                  class="px-4 py-3 text-center text-sm text-gray-600"
+                >
+                  {{ getRankCount(option.rankDistribution, rank) || "-" }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <!-- Grafik -->
-      <div class="mt-6">
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <canvas [id]="'question-' + i + '-stacked'"></canvas>
+        <!-- Grafik -->
+        <div class="mt-6">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <canvas [id]="'question-' + i + '-stacked'"></canvas>
+          </div>
         </div>
       </div>
     </div>

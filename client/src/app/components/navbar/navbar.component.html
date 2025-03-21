@@ -1,60 +1,122 @@
-<div class="">
-  <mat-toolbar color="#ffffff" style="padding: 10px 50px">
-    <button mat-icon-button routerLink="/">
-      <mat-icon>poll</mat-icon>
-    </button>
-    <a routerLink="/">POLLING-APP</a>
-    <div class="w-full"></div>
-    @if(isLoggedIn()){
-    <div *ngIf="authService.getUserDetail() as userDetail">
-      <div class="flex gap-5 items-center">
+<div
+  class="navbar-container py-4 flex justify-center bg-lavender-50 fixed top-0 left-0 right-0 z-10"
+>
+  <mat-toolbar
+    class="max-w-4xl w-auto px-8 py-2 rounded-full bg-white shadow-md"
+  >
+    <div class="flex w-full items-center justify-between">
+      <!-- Logo Section -->
+      <div class="flex items-center space-x-2">
+        <button mat-icon-button routerLink="/" class="text-blue-600">
+          <mat-icon>poll</mat-icon>
+        </button>
         <a
-          [matMenuTriggerFor]="menu"
-          class="flex gap-2 cursor-pointer items-center"
+          routerLink="/"
+          class="text-md font-medium tracking-tight text-gray-700 hidden sm:block"
+          >POLLING-APP</a
         >
-          <div
-            class="bg-blue-800 text-white font-bold shadow-md rounded-full w-5 h-5 p-5 flex justify-center items-center"
-          >
-            {{ userDetail!.fullName[0].toUpperCase() }}
-          </div>
-          <div class="text-black flex flex-col">
-            <h1 class="p-0 m-0 font-medium">{{ userDetail?.fullName }}</h1>
-            <p class="p-0 m-0 font-medium text-xs">{{ userDetail?.roles }}</p>
-          </div>
-        </a>
-        <mat-menu #menu="matMenu">
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="flex items-center justify-center space-x-4 md:space-x-8">
+        @if(isLoggedIn()){
+        <div *ngIf="authService.getUserDetail() as userDetail">
+          <!-- Admin Links -->
           @if(userDetail.roles == 'Admin'){
-          <button routerLink="/users" mat-menu-item>
-            <mat-icon> group </mat-icon>
-            <span>Users List</span>
-          </button>
-          <button routerLink="/poll-create" mat-menu-item>
-            <mat-icon> create </mat-icon>
-            <span>Poll Create</span>
-          </button>
-          <button routerLink="/polls" mat-menu-item>
-            <mat-icon> list </mat-icon>
-            <span>Poll List</span>
-          </button>
-          <button routerLink="/category-create" mat-menu-item>
-            <mat-icon> category </mat-icon>
-            <span>Category Create</span>
-          </button>
+          <div class="hidden md:flex items-center space-x-6"></div>
           }
-          <button (click)="logout()" mat-menu-item>
-            <mat-icon> logout </mat-icon>Logout
-            <span class="px-10 text-start"></span>
-          </button>
-        </mat-menu>
+          <!-- User Avatar and Dropdown -->
+          <a
+            [matMenuTriggerFor]="menu"
+            class="flex items-center space-x-2 cursor-pointer ml-4"
+          >
+            <a
+              class="text-md font-medium tracking-tight text-gray-700 hidden sm:block"
+              >{{ userDetail!.fullName }}</a
+            >
+
+            <div
+              class="bg-blue-600 text-white font-medium rounded-full w-8 h-8 flex justify-center items-center"
+            >
+              {{ userDetail!.fullName[0].toUpperCase() }}
+            </div>
+          </a>
+
+          <mat-menu #menu="matMenu" class="mt-2">
+            @if(userDetail.roles == 'Admin'){
+            <div class="py-1">
+              <button
+                routerLink="/users"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">group</mat-icon>
+                <span>Users List</span>
+              </button>
+              <button
+                routerLink="/poll-create"
+                mat-menu-item
+                class="flex items-center"
+              >
+                <mat-icon class="text-gray-600 mr-2">create</mat-icon>
+                <span>Poll Create</span>
+              </button>
+              <button
+                routerLink="/polls"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">list</mat-icon>
+                <span>Poll List</span>
+              </button>
+              <button
+                routerLink="/category-create"
+                mat-menu-item
+                class="flex items-center"
+              >
+                <mat-icon class="text-gray-600 mr-2">category</mat-icon>
+                <span>Category Create</span>
+              </button>
+              <button
+                routerLink="/poll-summary"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">poll</mat-icon>
+                <span>Poll Summary</span>
+              </button>
+            </div>
+            <mat-divider></mat-divider>
+            }
+            <div class="py-1">
+              <button
+                (click)="logout()"
+                mat-menu-item
+                class="flex items-center text-red-500"
+              >
+                <mat-icon class="mr-2">logout</mat-icon>
+                <span>Logout</span>
+              </button>
+            </div>
+          </mat-menu>
+        </div>
+        } @else {
+        <div class="flex items-center space-x-4">
+          <a
+            routerLink="/login"
+            class="text-gray-600 hover:text-blue-600 text-sm font-medium transition-colors"
+          >
+            Login
+          </a>
+          <a
+            routerLink="/register"
+            class="px-4 py-1 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors"
+          >
+            Register
+          </a>
+        </div>
+        }
       </div>
     </div>
-    } @else {
-    <div>
-      <div class="flex gap-5 items-center">
-        <a mat-button routerLink="/login"> Login </a>
-        <a mat-button routerLink="/register"> Register </a>
-      </div>
-    </div>
-    }
   </mat-toolbar>
 </div>

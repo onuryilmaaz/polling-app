@@ -1,250 +1,120 @@
-<div class="container mx-auto px-4 py-6">
-  <!-- Loading state -->
-  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
-    <div
-      class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-    ></div>
-  </div>
-
-  <!-- Error state -->
-  <div
-    *ngIf="errorMessage && !isLoading"
-    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-    role="alert"
+<div class="navbar-container py-4 flex justify-center bg-lavender-50">
+  <mat-toolbar
+    class="max-w-4xl w-auto px-8 py-2 rounded-full bg-white shadow-md"
   >
-    <strong class="font-bold">Hata!</strong>
-    <span class="block sm:inline">{{ errorMessage }}</span>
-  </div>
+    <div class="flex w-full items-center justify-between">
+      <!-- Logo Section -->
+      <div class="flex items-center space-x-2">
+        <button mat-icon-button routerLink="/" class="text-blue-600">
+          <mat-icon>poll</mat-icon>
+        </button>
+        <a
+          routerLink="/"
+          class="text-md font-medium tracking-tight text-gray-700 hidden sm:block"
+          >POLLING-APP</a
+        >
+      </div>
 
-  <!-- Data display -->
-  <div *ngIf="!isLoading && !errorMessage" class="space-y-8">
-    <!-- Main statistics cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm font-medium">Toplam Anket</h3>
-        <p class="text-3xl font-bold text-gray-900">
-          {{ pollSummary.totalPolls }}
-        </p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm font-medium">Toplam Yanıt</h3>
-        <p class="text-3xl font-bold text-gray-900">
-          {{ pollSummary.totalResponses }}
-        </p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm font-medium">Toplam Soru</h3>
-        <p class="text-3xl font-bold text-gray-900">
-          {{ pollSummary.totalQuestions }}
-        </p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-gray-500 text-sm font-medium">Toplam Cevap</h3>
-        <p class="text-3xl font-bold text-gray-900">
-          {{ pollSummary.totalAnswers }}
-        </p>
-      </div>
-    </div>
+      <!-- Navigation Links -->
+      <div class="flex items-center justify-center space-x-4 md:space-x-8">
+        @if(isLoggedIn()){
+        <div *ngIf="authService.getUserDetail() as userDetail">
+          <!-- Admin Links -->
+          @if(userDetail.roles == 'Admin'){
+          <div class="hidden md:flex items-center space-x-6"></div>
+          }
+          <!-- User Avatar and Dropdown -->
+          <a
+            [matMenuTriggerFor]="menu"
+            class="flex items-center space-x-2 cursor-pointer ml-4"
+          >
+            <a
+              class="text-md font-medium tracking-tight text-gray-700 hidden sm:block"
+              >{{ userDetail!.fullName }}</a
+            >
 
-    <!-- Poll status summary -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Anket Durumu</h2>
-      </div>
-      <div class="p-6">
-        <div class="flex space-x-4">
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-green-500">
-              {{ pollSummary.pollStatusSummary.active }}
+            <div
+              class="bg-blue-600 text-white font-medium rounded-full w-8 h-8 flex justify-center items-center"
+            >
+              {{ userDetail!.fullName[0].toUpperCase() }}
             </div>
-            <div class="text-sm text-gray-500">Aktif</div>
-          </div>
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-gray-500">
-              {{ pollSummary.pollStatusSummary.inactive }}
+          </a>
+
+          <mat-menu #menu="matMenu" class="mt-2">
+            @if(userDetail.roles == 'Admin'){
+            <div class="py-1">
+              <button
+                routerLink="/users"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">group</mat-icon>
+                <span>Users List</span>
+              </button>
+              <button
+                routerLink="/poll-create"
+                mat-menu-item
+                class="flex items-center"
+              >
+                <mat-icon class="text-gray-600 mr-2">create</mat-icon>
+                <span>Poll Create</span>
+              </button>
+              <button
+                routerLink="/polls"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">list</mat-icon>
+                <span>Poll List</span>
+              </button>
+              <button
+                routerLink="/category-create"
+                mat-menu-item
+                class="flex items-center"
+              >
+                <mat-icon class="text-gray-600 mr-2">category</mat-icon>
+                <span>Category Create</span>
+              </button>
+              <button
+                routerLink="/poll-summary"
+                mat-menu-item
+                class="flex items-center md:hidden"
+              >
+                <mat-icon class="text-gray-600 mr-2">poll</mat-icon>
+                <span>Poll Summary</span>
+              </button>
             </div>
-            <div class="text-sm text-gray-500">Pasif</div>
-          </div>
-          <div class="flex-1 text-center">
-            <div class="text-2xl font-bold text-red-500">
-              {{ pollSummary.pollStatusSummary.expired }}
+            <mat-divider></mat-divider>
+            }
+            <div class="py-1">
+              <button
+                (click)="logout()"
+                mat-menu-item
+                class="flex items-center text-red-500"
+              >
+                <mat-icon class="mr-2">logout</mat-icon>
+                <span>Logout</span>
+              </button>
             </div>
-            <div class="text-sm text-gray-500">Süresi Dolmuş</div>
-          </div>
+          </mat-menu>
         </div>
+        } @else {
+        <div class="flex items-center space-x-4">
+          <a
+            routerLink="/login"
+            class="text-gray-600 hover:text-blue-600 text-sm font-medium transition-colors"
+          >
+            Login
+          </a>
+          <a
+            routerLink="/register"
+            class="px-4 py-1 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors"
+          >
+            Register
+          </a>
+        </div>
+        }
       </div>
     </div>
-
-    <!-- Category distribution -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Kategori Dağılımı</h2>
-      </div>
-      <div class="p-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Kategori Adı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Anket Sayısı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Toplam Yanıt
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let category of pollSummary.category">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.categoryName }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.pollCount }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ category.totalResponses }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Top polls -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Popüler Anketler</h2>
-      </div>
-      <div class="p-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Anket Name
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Başlık
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Yanıt Sayısı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Soru Sayısı
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Oluşturma Tarihi
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Durum
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let poll of pollSummary.topPolls">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ poll.categoryName }}
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800"
-                >
-                  <a [routerLink]="['/polls', poll.pollId]">{{ poll.title }}</a>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ poll.responseCount }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ poll.questionCount }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ poll.createdDate | date : "dd.MM.yyyy" }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    *ngIf="poll.isActive"
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                  >
-                    Aktif
-                  </span>
-                  <span
-                    *ngIf="!poll.isActive"
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
-                  >
-                    Pasif
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Monthly distribution -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">Aylık Dağılım</h2>
-      </div>
-      <div class="p-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Ay
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Oluşturulan Anketler
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Alınan Yanıtlar
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let month of pollSummary.monthlyDistribution">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ month.month }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ month.pollsCreated }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ month.responsesReceived }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
+  </mat-toolbar>
 </div>
