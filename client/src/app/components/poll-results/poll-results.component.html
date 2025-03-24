@@ -54,21 +54,6 @@
         class="space-y-6"
       >
         <!-- Mevcut Bar gösterimi -->
-        <div *ngFor="let option of question.options" class="space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-700">{{ option.text }}</span>
-            <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2">
-            <div
-              class="bg-green-500 h-2 rounded-full"
-              [style.width.%]="option.percentage"
-            ></div>
-          </div>
-          <div class="text-xs text-gray-500 text-right">
-            {{ option.count }} responses
-          </div>
-        </div>
 
         <!-- Grafikler -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -83,26 +68,6 @@
 
       <!-- MultiSelect Charts -->
       <div *ngIf="question.type === 'MultiSelect'" class="space-y-6">
-        <!-- Mevcut Bar gösterimi -->
-        <div
-          *ngFor="let option of question.multiSelectResults.selectionCounts"
-          class="space-y-1"
-        >
-          <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-700">{{ option.text }}</span>
-            <span class="text-sm text-gray-500">{{ option.percentage }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2">
-            <div
-              class="bg-blue-500 h-2 rounded-full"
-              [style.width.%]="option.percentage"
-            ></div>
-          </div>
-          <div class="text-xs text-gray-500 text-right">
-            {{ option.count }} selections
-          </div>
-        </div>
-
         <!-- Grafik -->
         <div class="mt-6">
           <div class="bg-gray-50 p-4 rounded-lg">
@@ -113,43 +78,6 @@
 
       <!-- Ranking Table ve Chart -->
       <div *ngIf="question.type === 'Ranking'" class="space-y-6">
-        <!-- Mevcut tablo gösterimi -->
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th
-                  class="px-4 py-2 text-left text-sm font-medium text-gray-500"
-                >
-                  Option
-                </th>
-                <th
-                  *ngFor="
-                    let rank of [].constructor(question.maxSelections);
-                    let i = index
-                  "
-                  class="px-4 py-2 text-center text-sm font-medium text-gray-500"
-                >
-                  Rank {{ i + 1 }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr *ngFor="let option of question.rankingResults">
-                <td class="px-4 py-3 text-sm text-gray-700">
-                  {{ option.text }}
-                </td>
-                <td
-                  *ngFor="let rank of getRankColumns(question)"
-                  class="px-4 py-3 text-center text-sm text-gray-600"
-                >
-                  {{ getRankCount(option.rankDistribution, rank) || "-" }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
         <!-- Grafik -->
         <div class="mt-6">
           <div class="bg-gray-50 p-4 rounded-lg">
