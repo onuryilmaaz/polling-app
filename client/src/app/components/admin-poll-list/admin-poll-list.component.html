@@ -1,11 +1,15 @@
 <div
-  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 text-white py-16"
+  class="relative flex flex-col items-center justify-center bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 text-white py-8 px-4 md:py-16"
 >
   <div
     *ngIf="activePolls.length > 0; else noPolls"
-    class="max-w-4xl mx-auto mt-8"
+    class="w-full max-w-4xl mx-auto mt-4 md:mt-8"
   >
-    <h2 class="text-2xl font-bold text-white mb-4">Anketler</h2>
+    <h2
+      class="text-xl md:text-2xl font-bold text-white mb-4 text-center md:text-left"
+    >
+      Anketler
+    </h2>
 
     <ul class="space-y-4">
       <li
@@ -14,8 +18,7 @@
           'opacity-50 bg-gray-100': isPollExpired(poll),
           'bg-white': !isPollExpired(poll)
         }"
-        style="width: 900px"
-        class="shadow-md rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center"
+        class="w-full shadow-md rounded-lg p-3 md:p-4 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between"
       >
         <div class="flex-grow truncate">
           <h3
@@ -23,34 +26,34 @@
               'line-through text-gray-500': isPollExpired(poll),
               'text-gray-900': !isPollExpired(poll)
             }"
-            class="text-lg font-semibold"
+            class="text-md md:text-lg font-semibold"
           >
             {{ poll.id }}-{{ poll.title }}
           </h3>
-          <p class="text-gray-600 text-sm mb-3 truncate">
+          <p class="text-gray-600 text-xs md:text-sm mb-2 md:mb-3 truncate">
             {{ poll.description }}
           </p>
-          <p class="text-sm text-gray-500">
-            Soru Sayısı: {{ poll.questionCount }}
-          </p>
-          <p class="text-sm text-gray-500">
-            Cevap Sayısı: {{ poll.responseCount }}
-          </p>
-          <p class="text-sm text-gray-500">
-            Cevap Sayısı:
-            {{
-              poll.newCategoryName == null
-                ? "Kategori Yok"
-                : poll.newCategoryName
-            }}
-          </p>
-          <p class="text-sm text-gray-500">
-            Anketin Bitiş Tarihi: {{ formatExpiryDate(poll.expiryDate) }}
-          </p>
+          <div
+            class="grid grid-cols-2 md:grid-cols-3 gap-1 text-xs md:text-sm text-gray-500"
+          >
+            <p>Soru Sayısı: {{ poll.questionCount }}</p>
+            <p>Cevap Sayısı: {{ poll.responseCount }}</p>
+            <p class="col-span-2 md:col-span-1">
+              Kategori:
+              {{
+                poll.newCategoryName == null
+                  ? "Kategori Yok"
+                  : poll.newCategoryName
+              }}
+            </p>
+            <p class="col-span-2 md:col-span-3">
+              Anketin Bitiş Tarihi: {{ formatExpiryDate(poll.expiryDate) }}
+            </p>
+          </div>
 
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-2 mt-2">
             <span
-              class="text-sm font-medium px-2 py-1 rounded"
+              class="text-xs md:text-sm font-medium px-2 py-1 rounded"
               [ngClass]="{
                 'bg-green-100 text-green-800':
                   poll.isActive && !isPollExpired(poll),
@@ -60,59 +63,58 @@
             >
               {{ getStatusLabel(poll) }}
             </span>
-            <span *ngIf="isPollExpired(poll)" class="text-sm text-gray-500">
+            <span
+              *ngIf="isPollExpired(poll)"
+              class="text-xs md:text-sm text-gray-500"
+            >
               (Süresi: {{ formatExpiryDate(poll.expiryDate) }})
             </span>
           </div>
         </div>
 
-        <div class="mt-3 sm:mt-0 flex flex-col space-y-4">
-          <div class="flex space-x-1">
-            <button
-              (click)="togglePollStatus(poll.id, poll.isActive)"
-              [disabled]="isPollExpired(poll)"
-              [ngClass]="{
-                'bg-yellow-500 hover:text-yellow-500 hover:border border-yellow-500':
-                  poll.isActive && !isPollExpired(poll),
-                'bg-green-500 hover:text-green-500 hover:border border-green-500':
-                  !poll.isActive,
-                'bg-gray-500 hover:text-gray-500 hover:border border-gray-500 cursor-not-allowed':
-                  isPollExpired(poll)
-              }"
-              class="text-white px-3 py-1 border border-white hover:bg-white hover:text-black rounded-md transition-colors text-sm flex-1 whitespace-nowrap"
-            >
-              {{ getToggleButtonLabel(poll) }}
-            </button>
-          </div>
-          <div class="flex space-x-1">
-            <button
-              [routerLink]="['/poll-edit', poll.id]"
-              class="bg-purple-500 hover:border border-purple-700 hover:bg-white hover:text-purple-700 text-white px-3 py-1 rounded-md transition-colors text-sm flex-1 whitespace-nowrap"
-            >
-              Anketi Düzenle
-            </button>
-          </div>
-          <div class="flex space-x-1">
-            <button
-              [routerLink]="['/poll-results', poll.id]"
-              class="bg-blue-500 hover:border border-blue-700 hover:bg-white hover:text-blue-700 text-white px-3 py-1 rounded-md transition-colors text-sm flex-1 whitespace-nowrap"
-            >
-              Anketi Sonuçları
-            </button>
-          </div>
-          <div class="flex space-x-1">
-            <button
-              (click)="deletePoll(poll.id)"
-              class="bg-red-500 hover:border border-red-700 hover:bg-white hover:text-red-700 text-white px-3 py-1 rounded-md transition-colors text-sm flex-1 whitespace-nowrap"
-            >
-              Anketi Sil
-            </button>
-          </div>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <button
+            (click)="togglePollStatus(poll.id, poll.isActive)"
+            [disabled]="isPollExpired(poll)"
+            [ngClass]="{
+              'bg-yellow-500 hover:text-yellow-500 hover:border border-yellow-500':
+                poll.isActive && !isPollExpired(poll),
+              'bg-green-500 hover:text-green-500 hover:border border-green-500':
+                !poll.isActive,
+              'bg-gray-500 hover:text-gray-500 hover:border border-gray-500 cursor-not-allowed':
+                isPollExpired(poll)
+            }"
+            class="text-white px-2 py-1 border border-white hover:bg-white hover:text-black rounded-md transition-colors text-xs md:text-sm whitespace-nowrap"
+          >
+            {{ getToggleButtonLabel(poll) }}
+          </button>
+
+          <button
+            [routerLink]="['/poll-edit', poll.id]"
+            class="bg-purple-500 hover:border border-purple-700 hover:bg-white hover:text-purple-700 text-white px-2 py-1 rounded-md transition-colors text-xs md:text-sm whitespace-nowrap"
+          >
+            Anketi Düzenle
+          </button>
+
+          <button
+            [routerLink]="['/poll-results', poll.id]"
+            class="bg-blue-500 hover:border border-blue-700 hover:bg-white hover:text-blue-700 text-white px-2 py-1 rounded-md transition-colors text-xs md:text-sm whitespace-nowrap"
+          >
+            Anketi Sonuçları
+          </button>
+
+          <button
+            (click)="deletePoll(poll.id)"
+            class="bg-red-500 hover:border border-red-700 hover:bg-white hover:text-red-700 text-white px-2 py-1 rounded-md transition-colors text-xs md:text-sm whitespace-nowrap"
+          >
+            Anketi Sil
+          </button>
         </div>
       </li>
     </ul>
   </div>
+
+  <ng-template #noPolls>
+    <p class="text-center text-gray-500 mt-6">Anket bulunamadı.</p>
+  </ng-template>
 </div>
-<ng-template #noPolls>
-  <p class="text-center text-gray-500 mt-6">Anket bulunamadı.</p>
-</ng-template>

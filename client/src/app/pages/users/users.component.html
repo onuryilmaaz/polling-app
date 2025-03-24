@@ -1,12 +1,13 @@
 <div
-  class="flex justify-center items-center h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600"
+  class="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 py-6 px-4"
 >
-  <div class="w-full max-w-5xl bg-white shadow-lg rounded-2xl px-6">
-    <div class="bg-gray-50 p-4 rounded-lg">
-      <div class="mx-50 py-12">
-        <h1 class="text-3xl font-bold">Tüm Kullanıcılar</h1>
-        <div class="shadow-md text-left rounded-md mt-4">
-          <table class="w-full rounded-md">
+  <div class="w-full max-w-5xl bg-white shadow-lg rounded-2xl px-3 sm:px-6">
+    <div class="bg-gray-50 p-3 sm:p-4 rounded-lg">
+      <div class="py-6 sm:py-12">
+        <h1 class="text-2xl sm:text-3xl font-bold">Tüm Kullanıcılar</h1>
+        <div class="shadow-md text-left rounded-md mt-4 overflow-x-auto">
+          <!-- Desktop version (hidden on small screens) -->
+          <table class="w-full rounded-md hidden sm:table">
             <thead>
               <tr>
                 <th class="px-4 border py-2">İsim</th>
@@ -15,7 +16,6 @@
                 <th class="px-4 border py-2">Durum</th>
               </tr>
             </thead>
-
             <tbody>
               <tr *ngFor="let item of user$ | async">
                 <td class="border px-4 py-2">{{ item.fullName }}</td>
@@ -28,7 +28,7 @@
                       'bg-green-500': item.isActive,
                       'bg-red-500': !item.isActive
                     }"
-                    class="rounded-md px-4 py-2 text-center"
+                    class="rounded-md px-4 py-2 text-center text-white"
                   >
                     {{ item.isActive ? "Aktif" : "Pasif" }}
                   </button>
@@ -36,6 +36,42 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Mobile version (shown only on small screens) -->
+          <div class="sm:hidden">
+            <div
+              *ngFor="let item of user$ | async"
+              class="border rounded-md mb-4 p-3"
+            >
+              <div class="grid grid-cols-2 gap-1 mb-2">
+                <div class="text-gray-600 font-medium">İsim:</div>
+                <div>{{ item.fullName }}</div>
+              </div>
+              <div class="grid grid-cols-2 gap-1 mb-2">
+                <div class="text-gray-600 font-medium">Email:</div>
+                <div class="truncate">{{ item.email }}</div>
+              </div>
+              <div class="grid grid-cols-2 gap-1 mb-2">
+                <div class="text-gray-600 font-medium">Rol:</div>
+                <div>{{ item.roles }}</div>
+              </div>
+              <div class="grid grid-cols-2 gap-1 mb-2">
+                <div class="text-gray-600 font-medium">Durum:</div>
+                <div>
+                  <button
+                    (click)="toggleUserStatus(item.id, !item.isActive)"
+                    [ngClass]="{
+                      'bg-green-500': item.isActive,
+                      'bg-red-500': !item.isActive
+                    }"
+                    class="rounded-md px-3 py-1 text-center text-white text-sm"
+                  >
+                    {{ item.isActive ? "Aktif" : "Pasif" }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

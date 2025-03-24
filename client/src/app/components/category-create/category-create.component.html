@@ -1,5 +1,5 @@
 <div
-  class="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 p-4"
+  class="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 p-2 md:p-4"
 >
   <!-- Animasyonlu arka plan efektleri -->
   <div class="absolute w-full h-full">
@@ -9,13 +9,13 @@
         class="star animate-ping-slow absolute top-1/4 left-1/4 w-1 h-1 rounded-full bg-white opacity-75"
       ></div>
       <div
-        class="star animate-ping-slower absolute top-1/3 left-1/2 w-2 h-2 rounded-full bg-white opacity-60"
+        class="star animate-ping-slower absolute top-1/3 left-1/2 w-1 h-1 rounded-full bg-white opacity-60"
       ></div>
       <div
         class="star animate-ping-slow absolute top-2/3 left-1/3 w-1 h-1 rounded-full bg-white opacity-75"
       ></div>
       <div
-        class="star animate-ping-slower absolute top-1/2 left-3/4 w-2 h-2 rounded-full bg-white opacity-60"
+        class="star animate-ping-slower absolute top-1/2 left-3/4 w-1 h-1 rounded-full bg-white opacity-60"
       ></div>
       <div
         class="star animate-ping-slow absolute top-1/5 left-2/3 w-1 h-1 rounded-full bg-white opacity-75"
@@ -24,38 +24,44 @@
         class="star animate-ping-slower absolute top-3/4 left-1/4 w-1 h-1 rounded-full bg-white opacity-60"
       ></div>
       <div
-        class="star animate-ping-slow absolute top-1/2 left-1/5 w-2 h-2 rounded-full bg-white opacity-75"
+        class="star animate-ping-slow absolute top-1/2 left-1/5 w-1 h-1 rounded-full bg-white opacity-75"
       ></div>
       <div
         class="star animate-ping-slower absolute top-3/5 left-4/5 w-1 h-1 rounded-full bg-white opacity-60"
       ></div>
     </div>
 
-    <!-- Gradient blob animasyonları -->
+    <!-- Gradient blob animasyonları - Mobil için daha küçük blob'lar -->
     <div
-      class="absolute -top-20 -left-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"
+      class="absolute -top-10 -left-10 w-24 sm:w-36 md:w-72 h-24 sm:h-36 md:h-72 bg-blue-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"
     ></div>
     <div
-      class="absolute top-1/3 -right-20 w-96 h-96 bg-teal-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2000"
+      class="absolute top-1/3 -right-10 w-32 sm:w-48 md:w-96 h-32 sm:h-48 md:h-96 bg-teal-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2000"
     ></div>
     <div
-      class="absolute -bottom-20 left-1/2 w-80 h-80 bg-blue-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-4000"
+      class="absolute -bottom-10 left-1/2 w-28 sm:w-40 md:w-80 h-28 sm:h-40 md:h-80 bg-blue-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-4000"
     ></div>
   </div>
-  <div class="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-6">
-    <!-- Başlık -->
-    <h1 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">
+
+  <!-- Ana içerik konteynerı - Mobil için padding azaltıldı -->
+  <div
+    class="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-2 sm:p-3 md:p-6"
+  >
+    <!-- Başlık - Mobil için daha küçük text -->
+    <h1
+      class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 border-b pb-2 md:pb-3 mb-3 sm:mb-4 md:mb-6"
+    >
       Kategori Yönetimi
     </h1>
 
-    <!-- Kategori Oluşturma Kartı -->
-    <div class="bg-gray-50 p-4 rounded-lg">
+    <!-- Kategori Oluşturma Kartı - Mobil için padding azaltıldı -->
+    <div class="bg-gray-50 p-2 sm:p-3 md:p-4 rounded-lg">
       <form
         (ngSubmit)="onSubmit()"
         #categoryForm="ngForm"
-        class="flex flex-col sm:flex-row gap-3"
+        class="flex flex-col gap-2 sm:gap-3"
       >
-        <mat-form-field appearance="fill" class="flex-grow">
+        <mat-form-field appearance="fill" class="w-full text-sm sm:text-base">
           <mat-label>Kategori Adı</mat-label>
           <input
             matInput
@@ -65,8 +71,10 @@
             #categoryName="ngModel"
             placeholder="Kategori adını girin"
           />
-          <mat-icon matPrefix>category</mat-icon>
-          <mat-error *ngIf="categoryName.invalid">Bu alan zorunludur</mat-error>
+          <mat-icon matPrefix class="text-sm sm:text-base">category</mat-icon>
+          <mat-error *ngIf="categoryName.invalid" class="text-xs sm:text-sm"
+            >Bu alan zorunludur</mat-error
+          >
         </mat-form-field>
 
         <button
@@ -74,22 +82,31 @@
           color="primary"
           type="submit"
           [disabled]="!categoryForm.valid"
-          class="sm:self-center"
+          class="w-full md:w-auto md:self-end text-xs sm:text-sm md:text-base py-1 sm:py-2"
         >
-          <mat-icon class="mr-1">add</mat-icon>
+          <mat-icon class="mr-1 text-sm sm:text-base">add</mat-icon>
           Oluştur
         </button>
       </form>
     </div>
 
-    <!-- Kategori Listesi -->
-    <div class="mt-4">
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg">
+    <!-- Kategori Listesi - Mobil için daha küçük yazılar ve boşluklar -->
+    <div class="mt-3 sm:mt-4">
+      <div class="overflow-x-auto -mx-2 px-2">
+        <!-- Negatif margin ve padding için kaydırma alanı genişletildi -->
+        <table
+          class="min-w-full bg-white rounded-lg text-xs sm:text-sm md:text-base"
+        >
           <thead class="bg-gray-100">
             <tr>
-              <th class="py-2 px-3 text-left text-gray-700">Kategori</th>
-              <th class="py-2 px-3 text-right">İşlemler</th>
+              <th
+                class="py-1 sm:py-2 px-1 sm:px-2 md:px-3 text-left text-gray-700"
+              >
+                Kategori
+              </th>
+              <th class="py-1 sm:py-2 px-1 sm:px-2 md:px-3 text-right">
+                İşlemler
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -97,37 +114,51 @@
               *ngFor="let category of categories"
               class="border-b hover:bg-gray-50 transition-colors"
             >
-              <td class="py-2 px-3 text-gray-800 flex items-center">
-                <mat-icon class="text-indigo-500 mr-2">folder</mat-icon>
+              <td
+                class="py-1 sm:py-2 px-1 sm:px-2 md:px-3 text-gray-800 flex items-center"
+              >
+                <mat-icon
+                  class="text-indigo-500 mr-1 md:mr-2 text-sm sm:text-base md:text-xl"
+                  >folder</mat-icon
+                >
                 {{ category.name }}
               </td>
-              <td class="py-2 px-3 text-right">
+              <td class="py-1 sm:py-2 px-1 sm:px-2 md:px-3 text-right">
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="startEdit(category)"
                   matTooltip="Düzenle"
+                  class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10"
                 >
-                  <mat-icon>edit</mat-icon>
+                  <mat-icon class="text-sm sm:text-base md:text-xl"
+                    >edit</mat-icon
+                  >
                 </button>
                 <button
                   mat-icon-button
                   color="warn"
                   (click)="deleteCategory(category.id)"
                   matTooltip="Sil"
+                  class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10"
                 >
-                  <mat-icon>delete</mat-icon>
+                  <mat-icon class="text-sm sm:text-base md:text-xl"
+                    >delete</mat-icon
+                  >
                 </button>
               </td>
             </tr>
 
-            <!-- Kategori yoksa mesaj -->
+            <!-- Kategori yoksa mesaj - Mobil için küçültüldü -->
             <tr *ngIf="categories.length === 0">
-              <td colspan="2" class="py-4 text-center text-gray-500">
-                <mat-icon class="text-gray-400 mb-2" style="font-size: 32px"
+              <td colspan="2" class="py-3 sm:py-4 text-center text-gray-500">
+                <mat-icon
+                  class="text-gray-400 mb-1 sm:mb-2 text-xl sm:text-2xl md:text-3xl"
                   >folder_off</mat-icon
                 >
-                <p>Henüz kategori bulunmuyor</p>
+                <p class="text-xs sm:text-sm md:text-base">
+                  Henüz kategori bulunmuyor
+                </p>
               </td>
             </tr>
           </tbody>
@@ -135,28 +166,52 @@
       </div>
     </div>
 
-    <!-- Düzenleme Modalı (aynı şekilde kalabilir) -->
+    <!-- Düzenleme Modalı - Mobil için düzenlendi -->
     <div
       *ngIf="editingCategory"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-3"
     >
-      <div class="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-gray-800">Kategori Düzenle</h2>
-          <button mat-icon-button (click)="cancelEdit()">
-            <mat-icon>close</mat-icon>
+      <div
+        class="bg-white rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 w-full max-w-md mx-2"
+      >
+        <div class="flex justify-between items-center mb-2 sm:mb-3 md:mb-4">
+          <h2 class="text-base sm:text-lg md:text-xl font-bold text-gray-800">
+            Kategori Düzenle
+          </h2>
+          <button
+            mat-icon-button
+            (click)="cancelEdit()"
+            class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10"
+          >
+            <mat-icon class="text-sm sm:text-base">close</mat-icon>
           </button>
         </div>
 
-        <mat-form-field appearance="fill" class="w-full mb-4">
+        <mat-form-field
+          appearance="fill"
+          class="w-full mb-2 sm:mb-3 md:mb-4 text-sm sm:text-base"
+        >
           <mat-label>Kategori Adı</mat-label>
           <input matInput [(ngModel)]="editingCategory.name" required />
         </mat-form-field>
 
         <div class="flex justify-end gap-2">
-          <button mat-button (click)="cancelEdit()">İptal</button>
-          <button mat-raised-button color="primary" (click)="saveEdit()">
-            <mat-icon class="mr-1">save</mat-icon>
+          <button
+            mat-button
+            (click)="cancelEdit()"
+            class="text-xs sm:text-sm md:text-base py-1 px-2 sm:py-2 sm:px-3"
+          >
+            İptal
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="saveEdit()"
+            class="text-xs sm:text-sm md:text-base py-1 px-2 sm:py-2 sm:px-3"
+          >
+            <mat-icon class="mr-1 text-sm sm:text-base md:text-xl"
+              >save</mat-icon
+            >
             Kaydet
           </button>
         </div>

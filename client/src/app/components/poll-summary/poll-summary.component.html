@@ -1,60 +1,79 @@
 <div
   class="min-h-screen bg-gradient-to-b from-blue-800 via-blue-700 to-teal-600 flex flex-col"
 >
-  <div class="container mx-auto px-4 py-6">
+  <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
     <!-- Loading state -->
-    <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div
+      *ngIf="isLoading"
+      class="flex justify-center items-center h-40 sm:h-64"
+    >
       <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+        class="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-blue-500"
       ></div>
     </div>
 
     <!-- Error state -->
     <div
       *ngIf="errorMessage && !isLoading"
-      class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+      class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded relative"
       role="alert"
     >
       <strong class="font-bold">Hata!</strong>
-      <span class="block sm:inline">{{ errorMessage }}</span>
+      <span class="block sm:inline text-sm sm:text-base">{{
+        errorMessage
+      }}</span>
     </div>
 
     <!-- Data display -->
-    <div *ngIf="!isLoading && !errorMessage" class="space-y-8">
+    <div *ngIf="!isLoading && !errorMessage" class="space-y-4 sm:space-y-8">
       <!-- Main statistics cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-500 text-sm font-medium">Toplam Anket</h3>
-          <p class="text-3xl font-bold text-gray-900">
+      <div
+        class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
+      >
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 class="text-gray-500 text-xs sm:text-sm font-medium">
+            Toplam Anket
+          </h3>
+          <p class="text-xl sm:text-3xl font-bold text-gray-900">
             {{ pollSummary.totalPolls }}
           </p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-500 text-sm font-medium">Toplam Yanıt</h3>
-          <p class="text-3xl font-bold text-gray-900">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 class="text-gray-500 text-xs sm:text-sm font-medium">
+            Toplam Yanıt
+          </h3>
+          <p class="text-xl sm:text-3xl font-bold text-gray-900">
             {{ pollSummary.totalResponses }}
           </p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-500 text-sm font-medium">Toplam Soru</h3>
-          <p class="text-3xl font-bold text-gray-900">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 class="text-gray-500 text-xs sm:text-sm font-medium">
+            Toplam Soru
+          </h3>
+          <p class="text-xl sm:text-3xl font-bold text-gray-900">
             {{ pollSummary.totalQuestions }}
           </p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-500 text-sm font-medium">Toplam Cevap</h3>
-          <p class="text-3xl font-bold text-gray-900">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 class="text-gray-500 text-xs sm:text-sm font-medium">
+            Toplam Cevap
+          </h3>
+          <p class="text-xl sm:text-3xl font-bold text-gray-900">
             {{ pollSummary.totalAnswers }}
           </p>
         </div>
       </div>
 
       <!-- Charts Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
         <!-- Poll status chart -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Anket Durumu</h2>
-          <div class="h-64 flex justify-center">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2
+            class="text-base sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4"
+          >
+            Anket Durumu
+          </h2>
+          <div class="h-48 sm:h-64 flex justify-center">
             <canvas
               baseChart
               [data]="pollStatusChartData"
@@ -63,17 +82,25 @@
             >
             </canvas>
           </div>
-          <div class="flex justify-around mt-4 text-sm text-gray-600">
-            <div class="flex items-center">
-              <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+          <div
+            class="flex flex-col sm:flex-row sm:justify-around mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600"
+          >
+            <div class="flex items-center mb-1 sm:mb-0">
+              <div
+                class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 mr-1 sm:mr-2"
+              ></div>
               <span>Aktif: {{ pollSummary.pollStatusSummary.active }}</span>
             </div>
-            <div class="flex items-center">
-              <div class="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>
+            <div class="flex items-center mb-1 sm:mb-0">
+              <div
+                class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-500 mr-1 sm:mr-2"
+              ></div>
               <span>Pasif: {{ pollSummary.pollStatusSummary.inactive }}</span>
             </div>
             <div class="flex items-center">
-              <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+              <div
+                class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500 mr-1 sm:mr-2"
+              ></div>
               <span
                 >Süresi Dolmuş:
                 {{ pollSummary.pollStatusSummary.expired }}</span
@@ -83,11 +110,13 @@
         </div>
 
         <!-- Category chart -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2
+            class="text-base sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4"
+          >
             Kategori Dağılımı
           </h2>
-          <div class="h-64">
+          <div class="h-48 sm:h-64">
             <canvas
               baseChart
               [data]="categoryChartData"
@@ -99,9 +128,13 @@
         </div>
 
         <!-- Monthly distribution chart -->
-        <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Aylık Dağılım</h2>
-          <div class="h-64">
+        <div class="bg-white rounded-lg shadow p-3 sm:p-6 lg:col-span-2">
+          <h2
+            class="text-base sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4"
+          >
+            Aylık Dağılım
+          </h2>
+          <div class="h-48 sm:h-64">
             <canvas
               baseChart
               [data]="monthlyChartData"
@@ -115,41 +148,43 @@
 
       <!-- Top polls -->
       <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Popüler Anketler</h2>
+        <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <h2 class="text-base sm:text-lg font-medium text-gray-900">
+            Popüler Anketler
+          </h2>
         </div>
-        <div class="p-6">
+        <div class="p-2 sm:p-6">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-              <thead>
+              <thead class="bg-gray-50">
                 <tr>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Kategori
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Başlık
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Yanıt Sayısı
+                    Yanıt
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="hidden sm:table-cell px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Soru Sayısı
+                    Soru
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="hidden sm:table-cell px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Oluşturma Tarihi
+                    Tarih
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Durum
                   </th>
@@ -157,35 +192,43 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let poll of pollSummary.topPolls">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ getCategoryName(poll.categoryId) }}
                   </td>
                   <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800"
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-800"
                   >
                     <a [routerLink]="['/polls', poll.pollId]">{{
                       poll.title
                     }}</a>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ poll.responseCount }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="hidden sm:table-cell px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ poll.questionCount }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="hidden sm:table-cell px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ poll.createdDate | date : "dd.MM.yyyy" }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                     <span
                       *ngIf="poll.isActive"
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+                      class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
                     >
                       Aktif
                     </span>
                     <span
                       *ngIf="!poll.isActive"
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                      class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
                     >
                       Pasif
                     </span>
@@ -199,42 +242,48 @@
 
       <!-- Monthly distribution table -->
       <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">
+        <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <h2 class="text-base sm:text-lg font-medium text-gray-900">
             Aylık Dağılım Detayı
           </h2>
         </div>
-        <div class="p-6">
+        <div class="p-2 sm:p-6">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-              <thead>
+              <thead class="bg-gray-50">
                 <tr>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Ay
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Oluşturulan Anketler
+                    Anketler
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Alınan Yanıtlar
+                    Yanıtlar
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let month of pollSummary.monthlyDistribution">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ month.month }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ month.pollsCreated }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900"
+                  >
                     {{ month.responsesReceived }}
                   </td>
                 </tr>

@@ -4,44 +4,59 @@
   <div *ngIf="loading" class="p-4 text-center text-white">Loading...</div>
   <div *ngIf="error" class="p-4 text-center text-red-600">{{ error }}</div>
 
-  <div *ngIf="poll" class="max-w-4xl min-w-[58rem] mx-auto p-4 space-y-8">
+  <div
+    *ngIf="poll"
+    class="w-full max-w-4xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-8"
+  >
     <div class="space-y-2">
-      <div class="grid grid-cols-1 gap-4 bg-gray-50 p-4 rounded-lg mb-4">
-        <h2 class="text-3xl font-bold text-gray-800">{{ poll.title }}</h2>
-        <p class="text-gray-600">{{ poll.description }}</p>
+      <div
+        class="grid grid-cols-1 gap-2 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-lg mb-2 sm:mb-4"
+      >
+        <h2 class="text-xl sm:text-3xl font-bold text-gray-800">
+          {{ poll.title }}
+        </h2>
+        <p class="text-sm sm:text-base text-gray-600">{{ poll.description }}</p>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-lg"
+      >
         <div>
-          <p class="text-sm font-medium text-gray-500">Total Responses</p>
-          <p class="text-2xl font-bold text-gray-800">
+          <p class="text-xs sm:text-sm font-medium text-gray-500">
+            Total Responses
+          </p>
+          <p class="text-xl sm:text-2xl font-bold text-gray-800">
             {{ poll.totalResponses }}
           </p>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-500">Expiry Date</p>
-          <p class="text-gray-800">{{ formatExpiryDate(poll.expiryDate) }}</p>
+          <p class="text-xs sm:text-sm font-medium text-gray-500">
+            Expiry Date
+          </p>
+          <p class="text-sm sm:text-base text-gray-800">
+            {{ formatExpiryDate(poll.expiryDate) }}
+          </p>
         </div>
       </div>
     </div>
 
     <div
       *ngFor="let question of poll.questions; let i = index"
-      class="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+      class="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100"
     >
-      <h3 class="text-lg font-medium text-gray-800 mb-4">
+      <h3 class="text-base sm:text-lg font-medium text-gray-800 mb-2 sm:mb-4">
         {{ question.text }}
       </h3>
 
       <!-- Text Question -->
-      <div *ngIf="isTextQuestion(question)" class="space-y-3">
-        <h4 class="text-sm font-medium text-gray-500">
+      <div *ngIf="isTextQuestion(question)" class="space-y-2 sm:space-y-3">
+        <h4 class="text-xs sm:text-sm font-medium text-gray-500">
           Text Responses ({{ question.totalAnswers }})
         </h4>
-        <ul class="space-y-2">
+        <ul class="space-y-1 sm:space-y-2">
           <li
             *ngFor="let answer of question.textAnswers"
-            class="bg-gray-50 p-3 rounded-lg text-gray-700 text-sm"
+            class="bg-gray-50 p-2 sm:p-3 rounded-lg text-gray-700 text-xs sm:text-sm"
           >
             {{ answer }}
           </li>
@@ -51,36 +66,37 @@
       <!-- Multiple Choice/YesNo Charts -->
       <div
         *ngIf="question.type === 'MultipleChoice' || question.type === 'YesNo'"
-        class="space-y-6"
+        class="space-y-4 sm:space-y-6"
       >
-        <!-- Mevcut Bar gösterimi -->
-
         <!-- Grafikler -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="grid grid-cols-1 gap-3 sm:gap-4 mt-3 sm:mt-6">
+          <div class="bg-gray-50 p-2 sm:p-4 rounded-lg">
             <canvas [id]="'question-' + i + '-pie'"></canvas>
           </div>
-          <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="bg-gray-50 p-2 sm:p-4 rounded-lg mt-3">
             <canvas [id]="'question-' + i + '-bar'"></canvas>
           </div>
         </div>
       </div>
 
       <!-- MultiSelect Charts -->
-      <div *ngIf="question.type === 'MultiSelect'" class="space-y-6">
+      <div
+        *ngIf="question.type === 'MultiSelect'"
+        class="space-y-3 sm:space-y-6"
+      >
         <!-- Grafik -->
-        <div class="mt-6">
-          <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="mt-3 sm:mt-6">
+          <div class="bg-gray-50 p-2 sm:p-4 rounded-lg">
             <canvas [id]="'question-' + i + '-horizontal'"></canvas>
           </div>
         </div>
       </div>
 
       <!-- Ranking Table ve Chart -->
-      <div *ngIf="question.type === 'Ranking'" class="space-y-6">
+      <div *ngIf="question.type === 'Ranking'" class="space-y-3 sm:space-y-6">
         <!-- Grafik -->
-        <div class="mt-6">
-          <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="mt-3 sm:mt-6">
+          <div class="bg-gray-50 p-2 sm:p-4 rounded-lg">
             <canvas [id]="'question-' + i + '-stacked'"></canvas>
           </div>
         </div>
