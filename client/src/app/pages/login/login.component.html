@@ -7,8 +7,8 @@
     (ngSubmit)="login()"
   >
     <div class="py-4 text-center">
-      <h1 class="font-bold text-xl text-black">Login</h1>
-      <p class="text-slate-600 text-base">Login to your account</p>
+      <h1 class="font-bold text-xl text-black">Giriş Yap</h1>
+      <p class="text-slate-600 text-base">Hesabınıza giriş yapın</p>
     </div>
     <div class="">
       <mat-form-field appearance="fill" class="w-full mb-4">
@@ -22,12 +22,12 @@
     </div>
     <div class="mb-6">
       <mat-form-field appearance="fill" class="w-full mb-4">
-        <mat-label>Password</mat-label>
+        <mat-label>Şifre</mat-label>
         <input
           matInput
           formControlName="password"
           [type]="hide ? 'password' : 'text'"
-          placeholder="Password"
+          placeholder="Şifre"
         />
         <mat-icon matPrefix>lock</mat-icon>
         <mat-icon (click)="hide = !hide" matSuffix>
@@ -60,14 +60,14 @@
       type="submit"
       class="w-full border border-slate-200 rounded-lg disabled:bg-purple-400 py-2 px-3 bg-purple-700 text-white font-bold"
     >
-      Login
+      Giriş Yap
     </button>
 
     <div class="my-5 text-center">
       <span class="text-slate-600">
-        Don't have an account?
+        Hesabınız yok mu?
         <a routerLink="/register" class="text-purple-700 font-medium"
-          >Register</a
+          >Kayıt olun</a
         >
       </span>
     </div>

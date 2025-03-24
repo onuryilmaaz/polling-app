@@ -16,8 +16,8 @@
 
     <!-- Form Header -->
     <div class="text-center mb-6">
-      <h1 class="text-xl font-bold text-gray-900">Register</h1>
-      <p class="text-sm text-gray-600">Create your account</p>
+      <h1 class="text-xl font-bold text-gray-900">Kayıt Ol</h1>
+      <p class="text-sm text-gray-600">Hesap Oluşturun</p>
     </div>
 
     <!-- Email -->
@@ -38,9 +38,9 @@
     <!-- Full Name -->
     <div class="mb-6">
       <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Full Name</mat-label>
+        <mat-label>Tam Adınız</mat-label>
         <mat-icon matPrefix>person</mat-icon>
-        <input matInput placeholder="Fullname" formControlName="fullName" />
+        <input matInput placeholder="Adınız" formControlName="fullName" />
         <mat-error
           *ngIf="registerForm.get('fullName')?.hasError('required')"
           class="text-red-500"
@@ -53,7 +53,7 @@
     <!-- Password -->
     <div class="mb-6">
       <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Password</mat-label>
+        <mat-label>Parola</mat-label>
         <mat-icon matPrefix>lock</mat-icon>
         <mat-icon (click)="passwordHide = !passwordHide" matSuffix>
           {{ passwordHide ? "visibility_off" : "visibility" }}
@@ -62,7 +62,7 @@
           matInput
           formControlName="password"
           [type]="passwordHide ? 'password' : 'text'"
-          placeholder="Password"
+          placeholder="Parola"
         />
         <mat-error
           *ngIf="registerForm.get('password')?.hasError('required')"
@@ -89,7 +89,7 @@
     <!-- Confirm Password -->
     <div class="mb-8">
       <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Confirm Password</mat-label>
+        <mat-label>Parola Tekarı</mat-label>
         <mat-icon matPrefix>lock</mat-icon>
         <mat-icon
           (click)="confirmPasswordHide = !confirmPasswordHide"
@@ -101,7 +101,7 @@
           matInput
           formControlName="confirmPassword"
           [type]="confirmPasswordHide ? 'password' : 'text'"
-          placeholder="Confirm Password"
+          placeholder="Parola Tekarı"
         />
         <mat-error
           *ngIf="registerForm.get('confirmPassword')?.hasError('required')"
@@ -134,7 +134,7 @@
         registerForm.get('confirmPassword')?.touched
       "
     >
-      Passwords do not match.
+      Şifrenin eşleşmedi
     </span>
 
     <!-- Submit Button -->
@@ -143,14 +143,14 @@
       type="submit"
       class="w-full bg-purple-700 text-white font-bold py-2 rounded-lg disabled:bg-purple-400 transition hover:bg-purple-800"
     >
-      Register
+      Kayıt Ol
     </button>
 
     <!-- Login Link -->
     <div class="text-center mt-4">
       <span class="text-gray-600 text-sm">
-        Already have an account?
-        <a routerLink="/login" class="text-purple-700 font-medium">Login</a>
+        Zaten bir hesabınız var mı?
+        <a routerLink="/login" class="text-purple-700 font-medium">Giriş Yap</a>
       </span>
     </div>
   </form>
