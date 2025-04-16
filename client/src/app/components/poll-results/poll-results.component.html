@@ -6,7 +6,7 @@
 
   <div
     *ngIf="poll"
-    class="w-full max-w-4xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-8"
+    class="w-full max-w-3xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-8"
   >
     <div class="space-y-2">
       <div
@@ -23,7 +23,7 @@
       >
         <div>
           <p class="text-xs sm:text-sm font-medium text-gray-500">
-            Total Responses
+            Toplam Yanıtlar
           </p>
           <p class="text-xl sm:text-2xl font-bold text-gray-800">
             {{ poll.totalResponses }}
@@ -31,7 +31,7 @@
         </div>
         <div>
           <p class="text-xs sm:text-sm font-medium text-gray-500">
-            Expiry Date
+            Anketanın Son Tarihi
           </p>
           <p class="text-sm sm:text-base text-gray-800">
             {{ formatExpiryDate(poll.expiryDate) }}

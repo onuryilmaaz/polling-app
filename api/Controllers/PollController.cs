@@ -168,8 +168,19 @@ public class PollController : ControllerBase
             // Tüm ilişkili verileri sil
             foreach (var question in poll.Questions.ToList())
             {
-                // Önce cevapları sil
-                _context.Answers.RemoveRange(question.Answers);
+                // // Önce cevapları sil
+                // _context.Answers.RemoveRange(question.Answers);
+
+                // Önce o soruya bağlı cevapları veritabanından çekip sil
+                var answers = _context.Answers.Where(a => a.QuestionId == question.Id);
+                _context.Answers.RemoveRange(answers);
+
+                // Önce seçeneklerin bağlı olduğu SelectedOptions kayıtlarını sil
+                foreach (var option in question.Options)
+                {
+                    var selectedOptions = _context.SelectedOptions.Where(so => so.OptionId == option.Id);
+                    _context.SelectedOptions.RemoveRange(selectedOptions);
+                }
 
                 // Sonra seçenekleri sil
                 _context.Options.RemoveRange(question.Options);
