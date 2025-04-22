@@ -1,6 +1,7 @@
 {
   "title": "Müşteri Memnuniyet Anketi",
   "description": "Hizmetlerimizi geliştirmek için görüşlerinize ihtiyacımız var. Lütfen aşağıdaki soruları cevaplayarak deneyiminizi değerlendirin.",
+  "createdDate": "2025-04-22T08:30:30.127Z",
   "expiryDate": "2025-03-27T23:59:59.000Z",
   "isActive": true,
   "questions": [
@@ -151,7 +152,9 @@
           "text": "Kullanım kolaylığı",
           "orderIndex": 6
         }
-      ]
+      ],
+      "categoryId": 0,
+      "newCategoryName": "string"
     }
   ]
 }

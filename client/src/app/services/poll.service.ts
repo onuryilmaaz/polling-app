@@ -78,7 +78,7 @@ export class PollService {
 
   // JWT token ile header oluşturma
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token'); // Token'ı localStorage'dan al
+    const token = localStorage.getItem('token'); 
     return new HttpHeaders({
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
