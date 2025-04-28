@@ -168,6 +168,7 @@ public class PollController : ControllerBase
             // Tüm ilişkili verileri sil
             foreach (var question in poll.Questions.ToList())
             {
+                //_context.Questions.Where(x=>zzz)
                 // // Önce cevapları sil
                 // _context.Answers.RemoveRange(question.Answers);
 
@@ -211,18 +212,6 @@ public class PollController : ControllerBase
                     question.Options.Add(new Option { Text = "Hayır", OrderIndex = 1 });
                     questionDto.Options = null;
                 }
-                // else if (questionDto.Options != null)
-                // {
-                //     //int orderIndex = 0;
-                //     foreach (var optionDto in questionDto.Options)
-                //     {
-                //         question.Options.Add(new Option
-                //         {
-                //             Text = optionDto.Text ?? string.Empty,
-                //             OrderIndex = optionDto.OrderIndex
-                //         });
-                //     }
-                // }
                 else if (questionDto.Options != null)
                 {
                     int orderIndex = 0;
@@ -744,13 +733,13 @@ public class PollController : ControllerBase
             else
             {
                 // Anonim kullanıcı işlemi
-                Request.Cookies.TryGetValue("PollSessionId", out string cookieSessionId);
+                Request.Cookies.TryGetValue("SessionId", out string cookieSessionId);
                 sessionId = cookieSessionId;
 
                 if (string.IsNullOrEmpty(sessionId))
                 {
                     sessionId = Guid.NewGuid().ToString();
-                    Response.Cookies.Append("PollSessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
+                    Response.Cookies.Append("SessionId", sessionId, new CookieOptions { Expires = DateTime.Now.AddMonths(1), HttpOnly = true });
                 }
 
                 bool hasSubmitted = await _context.Responses
@@ -837,6 +826,51 @@ public class PollController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Anket yanıtı kaydedilirken bir hata oluştu: {ex.Message}");
+        }
+    }
+    #endregion
+
+    #region Ankete katılım durumu kontrolü
+    [HttpGet("check/{pollId}")]
+    public async Task<IActionResult> CheckPollParticipation(int pollId)
+    {
+        try
+        {
+            Guid? userId = null;
+            string sessionId = null;
+
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null)
+                {
+                    userId = Guid.Parse(userIdClaim.Value);
+                }
+            }
+            else
+            {
+                Request.Cookies.TryGetValue("SessionId", out string cookieSessionId);
+                sessionId = cookieSessionId;
+            }
+
+            bool hasSubmitted = false;
+
+            if (userId != null)
+            {
+                hasSubmitted = await _context.Responses
+                    .AnyAsync(r => r.PollId == pollId && r.UserId == userId.ToString());
+            }
+            else if (!string.IsNullOrEmpty(sessionId))
+            {
+                hasSubmitted = await _context.Responses
+                    .AnyAsync(r => r.PollId == pollId && r.SessionId == sessionId);
+            }
+
+            return Ok(new { hasSubmitted });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Katılım durumu kontrolü sırasında bir hata oluştu: {ex.Message}");
         }
     }
     #endregion

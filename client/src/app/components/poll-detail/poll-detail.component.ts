@@ -458,6 +458,7 @@ export class PollDetailComponent implements OnInit {
           icon: 'success',
           draggable: true,
         });
+        console.log(answers);
         this.router.navigate(['/poll-list']);
       },
       error: (err) => {

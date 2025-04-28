@@ -239,6 +239,7 @@ export class PollCreateComponent implements OnInit {
           icon: 'success',
           timer: 1000,
         });
+        console.log(response);
         this.router.navigate(['/poll-list']);
       },
       error: (err) => {
