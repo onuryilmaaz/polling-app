@@ -875,7 +875,7 @@ public class PollController : ControllerBase
     }
     #endregion
 
-    #region  Kullanıcının katıldığı anketleri getiren metot
+    #region Kullanıcının katıldığı anketleri getiren metot
     [HttpGet("participated")]
     public async Task<IActionResult> GetParticipatedPolls()
     {
@@ -894,8 +894,15 @@ public class PollController : ControllerBase
             }
             else
             {
-                Request.Cookies.TryGetValue("SessionId", out string cookieSessionId);
-                sessionId = cookieSessionId;
+                if (!Request.Cookies.TryGetValue("SessionId", out sessionId) || string.IsNullOrEmpty(sessionId))
+                {
+                    sessionId = Guid.NewGuid().ToString();
+                    Response.Cookies.Append("SessionId", sessionId, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Expires = DateTimeOffset.UtcNow.AddDays(30)
+                    });
+                }
             }
 
             List<int> pollIds;
@@ -908,17 +915,13 @@ public class PollController : ControllerBase
                     .Distinct()
                     .ToListAsync();
             }
-            else if (!string.IsNullOrEmpty(sessionId))
+            else
             {
                 pollIds = await _context.Responses
                     .Where(r => r.SessionId == sessionId)
                     .Select(r => r.PollId)
                     .Distinct()
                     .ToListAsync();
-            }
-            else
-            {
-                return BadRequest("Kullanıcı kimliği veya oturum bilgisi bulunamadı.");
             }
 
             var polls = await _context.Polls
