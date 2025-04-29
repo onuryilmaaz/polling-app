@@ -170,7 +170,7 @@ public class PollController : ControllerBase
             {
                 //_context.Questions.Where(x=>zzz)
                 // // Önce cevapları sil
-                // _context.Answers.RemoveRange(question.Answers);
+                _context.Answers.RemoveRange(question.Answers);
 
                 // Önce o soruya bağlı cevapları veritabanından çekip sil
                 var answers = _context.Answers.Where(a => a.QuestionId == question.Id);
@@ -871,6 +871,65 @@ public class PollController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Katılım durumu kontrolü sırasında bir hata oluştu: {ex.Message}");
+        }
+    }
+    #endregion
+
+    #region  Kullanıcının katıldığı anketleri getiren metot
+    [HttpGet("participated")]
+    public async Task<IActionResult> GetParticipatedPolls()
+    {
+        try
+        {
+            Guid? userId = null;
+            string sessionId = null;
+
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null)
+                {
+                    userId = Guid.Parse(userIdClaim.Value);
+                }
+            }
+            else
+            {
+                Request.Cookies.TryGetValue("SessionId", out string cookieSessionId);
+                sessionId = cookieSessionId;
+            }
+
+            List<int> pollIds;
+
+            if (userId != null)
+            {
+                pollIds = await _context.Responses
+                    .Where(r => r.UserId == userId.ToString())
+                    .Select(r => r.PollId)
+                    .Distinct()
+                    .ToListAsync();
+            }
+            else if (!string.IsNullOrEmpty(sessionId))
+            {
+                pollIds = await _context.Responses
+                    .Where(r => r.SessionId == sessionId)
+                    .Select(r => r.PollId)
+                    .Distinct()
+                    .ToListAsync();
+            }
+            else
+            {
+                return BadRequest("Kullanıcı kimliği veya oturum bilgisi bulunamadı.");
+            }
+
+            var polls = await _context.Polls
+                .Where(p => pollIds.Contains(p.Id))
+                .ToListAsync();
+
+            return Ok(polls);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Katıldığı anketleri getirirken bir hata oluştu: {ex.Message}");
         }
     }
     #endregion
