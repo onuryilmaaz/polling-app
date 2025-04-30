@@ -51,16 +51,16 @@ namespace api.Controllers
             }
 
             // "User" rolü mevcut mu kontrol et, yoksa oluştur
-            var userRoleExists = await _roleManager.RoleExistsAsync("Admin");
+            var userRoleExists = await _roleManager.RoleExistsAsync("User");
             if (!userRoleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                await _roleManager.CreateAsync(new IdentityRole("User"));
             }
 
             // Eğer roller belirtilmemişse default olarak "User" rolü ata
             if (registerDto.Roles is null || registerDto.Roles.Count == 0)
             {
-                await _userManager.AddToRoleAsync(user, "Admin");
+                await _userManager.AddToRoleAsync(user, "User");
             }
             else
             {

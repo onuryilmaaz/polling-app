@@ -91,6 +91,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGet("/api/active", () => "Active endpoint reached!");
+
 app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
